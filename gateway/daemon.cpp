@@ -1,23 +1,25 @@
 #include <stdio.h>
-#include <iostream>
 #include <errno.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <syslog.h>
 
+#include <QFile>
 #include <QDebug>
-
-using namespace std;
+#include <QTextStream>
 
 #include "daemon.h"
 
-Daemon::Daemon(QString name, void (*inthandler)(int))
+using namespace std;
+using namespace luna;
+
+
+Daemon::Daemon(QObject *parent, QString pidFile, void (*inthandler)(int)) : QObject(parent)
 {
-    _name = name;
-    _pidFilename = QString("/var/run/%1").arg(name);
+    _pidFile = pidFile;
     sighandler = inthandler;
 
-    qDebug() << QString("daemon name: %1, pidfile: %2").arg(_name, _pidFilename);
+    qDebug() << QString("daemon name: %1, pidfile: %2").arg(_name, _pidFile);
 }
 
 Daemon::~Daemon()
@@ -25,8 +27,13 @@ Daemon::~Daemon()
     finalize();
 }
 
-pid_t Daemon::read_pid(const char* name)
+pid_t Daemon::readPid(QString pidFile)
 {
+    QFile file(pidFile);
+    QTextStream in(&file);
+    QString line = in.readLine();
+
+
     int nsize = 16;
     char *data;
     pid_t pid;
@@ -47,7 +54,7 @@ pid_t Daemon::read_pid(const char* name)
     return pid;
 }
 
-int Daemon::write_pid(void)
+int Daemon::writePid(void)
 {
     ofstream file(pidfilename);
 

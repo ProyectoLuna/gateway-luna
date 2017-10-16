@@ -3,27 +3,31 @@
 #include <sys/types.h>
 #include <cstdbool>
 #include <QString>
+#include <QObject>
 
 namespace luna
 {
-class Daemon {
-private:
-    QString _name;
-    QString _pidFileName;
-    struct sigaction _sact;
-    void (*sighandler)(int);
+class Daemon: public QObject {
+    Q_OBJECT
 
 public:
-    DaemonLuna();
-    DaemonLuna(QString name, void (*inthandler)(int));
+    Daemon(QObject* parent = nullptr, QString filePath = "/var/run/daemon-luna.pid",
+           void (*inthandler)(int) = nullptr);
+    ~Daemon();
     bool setName(QString name);
     bool setIntHandler(void (*inthandler)(int));
-    ~DaemonLuna();
     void intHandler(int sig);
-    static pid_t readPid(QString name);
+    static pid_t readPid(QString pidFile);
     int writePid(void);
     static int checkPid(const char* name);
     void daemonize(void);
     void finalize(void);
+
+private:
+    QString _name;
+    QString _pidFile;
+    struct sigaction _sact;
+    void (*sighandler)(int);
+
 };
 }
