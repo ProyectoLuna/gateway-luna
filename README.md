@@ -6,5 +6,6 @@
 CMAKE_SYSROOT:STRING /opt/poky/2.3/metaqtsdk/sysroots/cortexa7hf-neon-vfpv4-poky-linux-gnueabi
 CMAKE_CXX_COMPILER_WORKS:STRING=1
 CMAKE_C_COMPILER_WORKS:STRING=1
+QTDIR:PATH /opt/poky/2.3/metaqtsdk/sysroots/x86_64-pokysdk-linux/usr/bin/qt5/moc
 ```
 
