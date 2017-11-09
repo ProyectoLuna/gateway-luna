@@ -4,15 +4,16 @@
 #include <unistd.h>
 #include <syslog.h>
 
-#include <exception>
-
 #include <QFile>
 #include <QDebug>
 #include <QTextStream>
 #include <QString>
 #include <QSocketNotifier>
 
+#include <Logger.h>
+
 #include "daemon.h"
+#include "excpt.h"
 
 using namespace std;
 using namespace luna;
@@ -46,17 +47,16 @@ Daemon::Daemon(QObject* parent, QString filePath) : QObject(parent)
 {
     if (checkPid(filePath))
     {
-        qDebug() << "Daemon already exists";
-        throw "Daemon already exists.";
+        LOG_ERROR("Daemon already exists");
+        throw Excpt("Daemon already exists.");
     }
 
-    qDebug() << "Deamonizing process...";
     _pidFile = filePath;
     writePid();
 
     daemonize();
 
-    qDebug() << QString("Process Deamonized, pidfile: %2").arg(_pidFile);
+    LOG_DEBUG(QString("Process Deamonized, pidfile: %2").arg(_pidFile));
 
     emit daemonized();
 }
@@ -77,8 +77,6 @@ pid_t Daemon::readPid(const QString &pidFile)
     QTextStream in(&file);
     QString line = in.readLine();
 
-    qDebug() << QString("Read pid: %1").arg(line);
-
     return line.toInt();
 }
 
@@ -87,11 +85,10 @@ int Daemon::writePid(void)
     QFile file(_pidFile);
     if (!file.open(QIODevice::ReadWrite))
     {
-        qDebug() << QString("Error opening pidfile: %1, %2").arg(_pidFile, strerror(errno));
+        LOG_ERROR(QString("Error opening pidfile: %1, %2").arg(_pidFile, strerror(errno)));
         return -1;
     }
 
-    qDebug() << "ola que ase";
     QTextStream stream(&file);
     stream << getpid();
     return 0;
@@ -113,10 +110,10 @@ int Daemon::checkPid(const QString &pidFile)
 void Daemon::daemonize(void)
 {
     if (::socketpair(AF_UNIX, SOCK_STREAM, 0, sighupFd))
-       qFatal("Couldn't create HUP socketpair");
+       LOG_ERROR("Couldn't create HUP socketpair");
 
     if (::socketpair(AF_UNIX, SOCK_STREAM, 0, sigtermFd))
-       qFatal("Couldn't create TERM socketpair");
+       LOG_ERROR("Couldn't create TERM socketpair");
     snHup = new QSocketNotifier(sighupFd[1], QSocketNotifier::Read, this);
     connect(snHup, SIGNAL(activated(int)), this, SLOT(handleSigHup()));
     snTerm = new QSocketNotifier(sigtermFd[1], QSocketNotifier::Read, this);

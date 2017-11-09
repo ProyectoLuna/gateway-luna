@@ -20,11 +20,13 @@ find_package(Qt5Core)
 find_package(rf24)
 find_package(rf24network)
 find_package(rf24mesh)
+find_package(CuteLogger)
 
 set(SOURCES
     main.cpp
     radiorf24.cpp
     daemon.cpp
+    excpt.cpp
     )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -33,6 +35,7 @@ target_link_libraries(${PROJECT_NAME} Qt5Core)
 target_link_libraries(${PROJECT_NAME} rf24)
 target_link_libraries(${PROJECT_NAME} rf24network)
 target_link_libraries(${PROJECT_NAME} rf24mesh)
+target_link_libraries(${PROJECT_NAME} CuteLogger)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
