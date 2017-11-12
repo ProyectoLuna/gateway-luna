@@ -1,13 +1,23 @@
-#include "radiorf24.h"
 #include <stdint.h>
 #include <string.h>
-#include <syslog.h>
+
+#include <QString>
+
+#include <Logger.h>
+
+#include "iradio.h"
+#include "radiorf24.h"
+
+using namespace luna;
 
 RF24 radio(RPI_V2_GPIO_P1_15, BCM2835_SPI_CS0, BCM2835_SPI_SPEED_8MHZ);
 RF24Network network(radio);
 RF24Mesh mesh(radio,network);
 
-RadioRF24::RadioRF24() {
+RadioRF24::RadioRF24(QObject *parent) : IRadio()
+{
+    setParent(parent);
+
     // Set the nodeID to 0 for the master node
     mesh.setNodeID(0);
 
@@ -41,17 +51,25 @@ int RadioRF24::check_remotes(void) {
         // Display the incoming millis() values from the sensor nodes
         case 'M':
             network.read(header, &dat, sizeof(dat));
-            syslog(0, "Rcv %u from 0%o\n", dat, header.from_node);
+            LOG_INFO(QString("Rcv %1 from 0%2").arg(dat, header.from_node));
             header_tonode.to_node = header.from_node;
             network.write(header_tonode, (const void *)msg, (unsigned short int)strlen(msg));
+
+            emit rxMessage(QString(msg));
+
             break;
         default:
             network.read(header, 0, 0);
-            syslog(0, "Rcv bad type %d from 0%o\n", header.type,
-                    header.from_node);
+            LOG_WARNING(QString("Rcv bad type %1 from 0%2").arg(header.type,
+                    header.from_node));
             break;
         }
     }
     delay(2);
     return 0;
+}
+
+bool RadioRF24::dummy()
+{
+    return true;
 }

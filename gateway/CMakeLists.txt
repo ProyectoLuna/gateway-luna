@@ -14,17 +14,10 @@ set_target_properties(Qt5::moc PROPERTIES
     IMPORTED_LOCATION ${QTDIR}
 )
 
-MESSAGE(${QTDIR})
-
 find_package(Qt5Core)
-find_package(rf24)
-find_package(rf24network)
-find_package(rf24mesh)
-find_package(CuteLogger)
 
 set(SOURCES
     main.cpp
-    radiorf24.cpp
     daemon.cpp
     excpt.cpp
     )
@@ -42,3 +35,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MAKE_PROGRAM "/usr/bin/make")
 
 SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -mfloat-abi=hard")
+
+add_subdirectory(radio)
+INCLUDE_DIRECTORIES(radio)

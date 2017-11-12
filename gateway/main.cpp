@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     ConsoleAppender* consoleAppender = new ConsoleAppender();
     consoleAppender->setFormat("[%{type}][%{time}] <%{function}> %{message}\n");
     FileAppender* fileAppender = new FileAppender("/var/log/luna.log");
-    fileAppender->setFormat("[%{type}] <%{function}> %{message}\n");
+    fileAppender->setFormat("[%{type}][%{time}] <%{function}> %{message}\n");
     Logger::globalInstance()->registerAppender(fileAppender);
     Logger::globalInstance()->registerAppender(consoleAppender);
 
@@ -41,15 +41,15 @@ int main(int argc, char *argv[])
 
     LOG_INFO("Starting the application");
 
-    Daemon* daemon;
+    QSharedPointer<Daemon> daemon;
     if (daemonize)
     {
         try
         {
-            daemon = new Daemon(nullptr, QString("/var/run/gateway.pid"));
+            daemon = QSharedPointer<Daemon> (new Daemon(nullptr, QString("/var/run/gateway.pid")));
 
             // Quit application when work is finished
-            QObject::connect(daemon, SIGNAL(finished()), &a, SLOT(quit()));
+            QObject::connect(daemon.data(), SIGNAL(finished()), &a, SLOT(quit()));
         }
         catch (const std::exception &e)
         {
@@ -57,8 +57,6 @@ int main(int argc, char *argv[])
             exit(1);
         }
     }
-//    RadioRF24 radiorf24;
-//    radiorf24.check_remotes();
 
     return a.exec();
 }
