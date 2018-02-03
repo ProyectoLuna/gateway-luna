@@ -8,6 +8,7 @@
 #include <FileAppender.h>
 
 #include "radiorf24.h"
+#include "radio_manager.h"
 #include "daemon.h"
 
 using namespace luna;
@@ -15,14 +16,15 @@ using namespace luna;
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+
     QCoreApplication::setApplicationName("gateway");
     QCoreApplication::setApplicationVersion("0.0.1");
 
     // Config logger
     ConsoleAppender* consoleAppender = new ConsoleAppender();
-    consoleAppender->setFormat("[%{type}][%{time}] <%{function}> %{message}\n");
+    consoleAppender->setFormat("[%{type}][%{time}][%{threadid}] <%{function}> %{message}\n");
     FileAppender* fileAppender = new FileAppender("/var/log/luna.log");
-    fileAppender->setFormat("[%{type}][%{time}] <%{function}> %{message}\n");
+    fileAppender->setFormat("[%{type}][%{time}][%{threadid}] <%{function}> %{message}\n");
     Logger::globalInstance()->registerAppender(fileAppender);
     Logger::globalInstance()->registerAppender(consoleAppender);
 
@@ -39,7 +41,7 @@ int main(int argc, char *argv[])
     parser.process(a);
     bool daemonize = parser.isSet(daemonOption);
 
-    LOG_INFO("Starting the application");
+    LOG_INFO("Starting the application...");
 
     QSharedPointer<Daemon> daemon;
     if (daemonize)
@@ -57,6 +59,8 @@ int main(int argc, char *argv[])
             exit(1);
         }
     }
+
+    RadioManager radioManager;
 
     return a.exec();
 }

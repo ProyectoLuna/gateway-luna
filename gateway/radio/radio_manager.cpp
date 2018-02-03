@@ -8,12 +8,14 @@ using namespace luna;
 RadioManager::RadioManager(QObject *parent) : QObject(parent)
 {
     // Add rf24 to radio list
-    QSharedPointer<IRadio> radiorf24 =
-            QSharedPointer<IRadio>(new RadioRF24);
+    QSharedPointer<RadioRF24> radiorf24 =
+            QSharedPointer<RadioRF24>(new RadioRF24);
     radioList.append(radiorf24);
 
     //QSharedPointer<RadioRF24> r = qSharedPointerCast<RadioRF24>(radiorf24);
     QObject::connect(radiorf24.data(), SIGNAL(rxMessage(QString)), this, SLOT(onRxMessage(QString)));
+
+    radiorf24->check_remotes();
 }
 
 bool RadioManager::onRxMessage(const QString &message)

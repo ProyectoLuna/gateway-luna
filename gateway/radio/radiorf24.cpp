@@ -1,3 +1,5 @@
+#include <unistd.h>
+
 #include <stdint.h>
 #include <string.h>
 
@@ -31,41 +33,46 @@ RadioRF24::~RadioRF24() {
     // TODO Auto-generated destructor stub
 }
 
-int RadioRF24::check_remotes(void) {
-    // Call network.update as usual to keep the network updated
-    mesh.update();
+int RadioRF24::check_remotes(void)
+{
+    while (true)
+    {
+        // Call network.update as usual to keep the network updated
+        mesh.update();
 
-    // In addition, keep the 'DHCP service' running on the master node so addresses will
-    // be assigned to the sensor nodes
-    mesh.DHCP();
+        // In addition, keep the 'DHCP service' running on the master node so addresses will
+        // be assigned to the sensor nodes
+        mesh.DHCP();
 
-    // Check for incoming data from the sensors
-    while (network.available()) {
-        RF24NetworkHeader header;
-        network.peek(header);
-        RF24NetworkHeader& header_tonode = *(RF24NetworkHeader*)network.frame_buffer;
-        const char *msg = "olaqase";
+        // Check for incoming data from the sensors
+        while (network.available()) {
+            RF24NetworkHeader header;
+            network.peek(header);
+            RF24NetworkHeader& header_tonode = *(RF24NetworkHeader*)network.frame_buffer;
+            const char *msg = "olaqase";
 
-        uint32_t dat = 0;
-        switch (header.type) {
-        // Display the incoming millis() values from the sensor nodes
-        case 'M':
-            network.read(header, &dat, sizeof(dat));
-            LOG_INFO(QString("Rcv %1 from 0%2").arg(dat, header.from_node));
-            header_tonode.to_node = header.from_node;
-            network.write(header_tonode, (const void *)msg, (unsigned short int)strlen(msg));
+            uint32_t dat = 0;
+            switch (header.type) {
+            // Display the incoming millis() values from the sensor nodes
+            case 'M':
+                network.read(header, &dat, sizeof(dat));
+                LOG_INFO(QString("Rcv %1 from 0%2").arg(dat).arg(header.from_node));
+                header_tonode.to_node = header.from_node;
+                network.write(header_tonode, (const void *)msg, (unsigned short int)strlen(msg));
 
-            emit rxMessage(QString(msg));
+                emit rxMessage(QString::number(dat));
 
-            break;
-        default:
-            network.read(header, 0, 0);
-            LOG_WARNING(QString("Rcv bad type %1 from 0%2").arg(header.type,
-                    header.from_node));
-            break;
+                break;
+            default:
+                network.read(header, 0, 0);
+                LOG_WARNING(QString("Rcv bad type %1 from 0%2").arg(header.type,
+                                                                    header.from_node));
+                break;
+            }
         }
+        delay(2);
+        ::usleep(1000);
     }
-    delay(2);
     return 0;
 }
 

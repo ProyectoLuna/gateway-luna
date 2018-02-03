@@ -15,7 +15,6 @@ class RadioManager : public QObject
 
 public:
     RadioManager(QObject* parent = nullptr);
-    virtual ~RadioManager();
 
 private:
     QList<QSharedPointer<IRadio>> radioList;

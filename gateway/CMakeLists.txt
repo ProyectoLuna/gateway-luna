@@ -1,5 +1,21 @@
 cmake_minimum_required(VERSION 2.8.12)
 
+# Deployment macros
+file(WRITE "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "/home/root/\n")
+
+macro(add_deployment_file SRC DEST)
+    file(RELATIVE_PATH path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+    file(APPEND "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "${path}/${SRC}:${DEST}\n")
+endmacro()
+
+macro(add_deployment_directory SRC DEST)
+    file(GLOB_RECURSE files RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC}/*")
+    foreach(filename ${files})
+        get_filename_component(path ${filename} PATH)
+        add_deployment_file("${filename}" "${DEST}/${path}")
+    endforeach(filename)
+endmacro()
+
 project(gateway)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -16,19 +32,14 @@ set_target_properties(Qt5::moc PROPERTIES
 
 find_package(Qt5Core)
 
-set(SOURCES
+set(
+    SOURCES
     main.cpp
     daemon.cpp
     excpt.cpp
     )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-
-target_link_libraries(${PROJECT_NAME} Qt5Core)
-target_link_libraries(${PROJECT_NAME} rf24)
-target_link_libraries(${PROJECT_NAME} rf24network)
-target_link_libraries(${PROJECT_NAME} rf24mesh)
-target_link_libraries(${PROJECT_NAME} CuteLogger)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -38,3 +49,10 @@ SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -mfloat-abi=hard")
 
 add_subdirectory(radio)
 INCLUDE_DIRECTORIES(radio)
+
+target_link_libraries(${PROJECT_NAME} Qt5Core)
+target_link_libraries(${PROJECT_NAME} rf24)
+target_link_libraries(${PROJECT_NAME} rf24network)
+target_link_libraries(${PROJECT_NAME} rf24mesh)
+target_link_libraries(${PROJECT_NAME} CuteLogger)
+target_link_libraries(${PROJECT_NAME} radio)
