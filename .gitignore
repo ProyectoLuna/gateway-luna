@@ -76,5 +76,5 @@ Thumbs.db
 QtCreatorDeployment.txt
 
 # nanopb
-# gateway/protos/nanopb/src/
-# gateway/protos/nanopb/tmp/
+gateway/protos/nanopb/src/
+gateway/protos/nanopb/tmp/
