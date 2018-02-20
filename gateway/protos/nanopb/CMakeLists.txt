@@ -1,0 +1,34 @@
+include(ExternalProject)
+
+ExternalProject_Add(nanopd-generator-bin
+        PREFIX ${CMAKE_SOURCE_DIR}/protos/nanopb
+        URL http://localhost:8081/artifactory/generic-local/generator-bin.tar.gz
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+        )
+
+# Autogenerate nanopb files
+message(STATUS "execute protoc cmd")
+set (protoc_cmd "${CMAKE_SOURCE_DIR}/protos/nanopb/src/nanopd-generator-bin/protoc")
+set (protoc_arg1 "--nanopb_out=${CMAKE_SOURCE_DIR}/protos/nanopb")
+set (protoc_arg2 "--proto_path=${CMAKE_SOURCE_DIR}/protos")
+set (protoc_arg3 "${CMAKE_SOURCE_DIR}/protos/remote_devs.proto")
+message (STATUS "${protoc_cmd} ${protoc_arg1} ${protoc_arg2} ${protoc_arg3}")
+execute_process(COMMAND ${protoc_cmd} ${protoc_arg1} ${protoc_arg2} ${protoc_arg3}
+                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/protos/nanopb
+                RESULT_VARIABLE protoc_result)
+message(STATUS "protoc [${protoc_result}]")
+
+FILE(GLOB_RECURSE LibFiles "*.h")
+
+add_library (nanopb SHARED
+    pb_common.c
+    pb_decode.c
+    pb_encode.c
+    remote_devs.pb.c
+    ${LibFiles}
+    )
+
+set(libName libnanopb.so)
+add_deployment_file(${libName} lib/)

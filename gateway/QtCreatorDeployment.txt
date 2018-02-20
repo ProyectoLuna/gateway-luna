@@ -1,2 +1,0 @@
-/home/root/
-../build-gateway-qt5_raspberry-Debug/radio/libradio.so:lib/

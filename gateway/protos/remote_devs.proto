@@ -1,0 +1,29 @@
+syntax = "proto2";
+
+enum RadioId {
+    RID_UNKNOWN = 0;
+    RID_NRF24 = 1;
+}
+
+message RemoteDevUniqueId {
+    required RadioId radio_id = 1;
+    uint32 id32 = 2;
+}
+
+message RemoteDevHeader {
+    required uint32 transaction_id = 1;
+    required RemoteDevUniqueId unique_id = 2;
+}
+
+message SensorData {
+    required string data = 1;
+}
+
+message RemoteDevData {
+    SensorData sendor_data = 1;
+}
+
+message RemoteDevMessage {
+    required RemoteDevHeader header = 1;
+    repeated RemoteDevData data = 2;
+}
