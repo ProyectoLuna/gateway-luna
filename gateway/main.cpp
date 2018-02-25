@@ -7,16 +7,9 @@
 #include <ConsoleAppender.h>
 #include <FileAppender.h>
 
-#include "radiorf24.h"
-#include "radio_manager.h"
 #include "daemon.h"
-
-extern "C"
-{
-#include "pb_encode.h"
-#include "pb_decode.h"
-#include "remote_devs.pb.h"
-}
+#include "gateway.h"
+#include "lunapb.h"
 
 using namespace luna;
 
@@ -50,6 +43,90 @@ int main(int argc, char *argv[])
 
     LOG_INFO("Starting the application...");
 
+    // --------------------------------------------------------
+//    uint8_t buffer[1024];
+//    size_t message_length;
+//    bool status;
+//
+//    // ENCODE
+//    {
+//        RemoteDevMessage message = RemoteDevMessage_init_zero;
+//
+//        pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+//
+//        message.header.transaction_id = 1;
+//        message.header.unique_id.radio_id = RadioId_RID_NRF24;
+//        message.header.unique_id.id32 = 13;
+//
+//        RepeatedSensorData repeatedData;
+//
+//        SensorData sensorData[4];
+//        int numData = 4;
+//        for (int i = 0; i < numData; ++i)
+//        {
+//            sensorData[i].unit = SensorUnits_SU_MAH;
+//            sensorData[i].value = i;
+//        }
+//
+//        repeatedData.data = sensorData;
+//        repeatedData.num = numData;
+//
+//        message.data.funcs.encode = &encode_repeated_sensordata;
+//        message.data.arg = &repeatedData;
+//
+//        status = pb_encode(&stream, RemoteDevMessage_fields, &message);
+//        message_length = stream.bytes_written;
+//
+//        /* Then just check for any errors.. */
+//        if (!status)
+//        {
+//            LOG_ERROR("Encoding failed");
+//        }
+//    }
+//
+//    // DECODE
+//    {
+//        RemoteDevMessage message = RemoteDevMessage_init_zero;
+//
+//        /* Create a stream that reads from the buffer. */
+//        pb_istream_t stream = pb_istream_from_buffer(buffer, message_length);
+//
+//        RepeatedSensorData repeatedData;
+//        repeatedData.num = 0;
+//        SensorData sensorData[8];
+//        repeatedData.data = sensorData;
+//
+//        message.data.funcs.decode = &decode_sensordata;
+//        message.data.arg = &repeatedData;
+//
+//        status = pb_decode(&stream, RemoteDevMessage_fields, &message);
+//
+//        if (!status)
+//        {
+//            LOG_ERROR(QString("Decoding failed: %1").arg(QString(PB_GET_ERROR(&stream))));
+//        }
+//
+//        LOG_INFO(QString("ID: %1, radioID: %2, transaction: %3, num Sensor data: %4")
+//                 .arg(message.header.unique_id.id32)
+//                 .arg(message.header.unique_id.radio_id)
+//                 .arg(message.header.transaction_id)
+//                 .arg(repeatedData.num)
+//                 );
+//
+//        for (int i = 0; i < repeatedData.num; ++i)
+//        {
+//            LOG_INFO(QString("Unit: %1, value: %2")
+//                     .arg(repeatedData.data[i].unit)
+//                     .arg(repeatedData.data[i].value)
+//                     );
+//        }
+//
+//    }
+//    return 0;
+    // --------------------------------------------------------
+
+    Gateway gateway;
+
     QSharedPointer<Daemon> daemon;
     if (daemonize)
     {
@@ -58,60 +135,22 @@ int main(int argc, char *argv[])
             daemon = QSharedPointer<Daemon> (new Daemon(nullptr, QString("/var/run/gateway.pid")));
 
             // Quit application when work is finished
-            QObject::connect(daemon.data(), SIGNAL(finished()), &a, SLOT(quit()));
+            QObject::connect(daemon.data(), SIGNAL(finished()), &gateway, SLOT(stop()));
+            QObject::connect(&gateway, SIGNAL(stopped()), &a, SLOT(quit()));
         }
         catch (const std::exception &e)
         {
             e.what();
-            exit(1);
+            exit(EXIT_FAILURE);
         }
     }
 
-    uint8_t buffer[256];
-    size_t message_length;
-    bool status;
-
+    bool ret = gateway.start();
+    if (not ret)
     {
-        RemoteDevMessage message = RemoteDevMessage_init_zero;
-
-        pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
-
-        message.header.transaction_id = 1;
-        message.header.unique_id.radio_id = RadioId_RID_NRF24;
-
-        // TODO investigar el repeated
-
-        status = pb_encode(&stream, RemoteDevMessage_fields, &message);
-        message_length = stream.bytes_written;
-
-        /* Then just check for any errors.. */
-        if (!status)
-        {
-            qInfo() << "Encoding failed: " << PB_GET_ERROR(&stream);
-            return EXIT_FAILURE;
-        }
+        LOG_ERROR("Error starting gateway");
+        exit(EXIT_FAILURE);
     }
-
-    {
-        RemoteDevMessage message = RemoteDevMessage_init_zero;
-
-        /* Create a stream that reads from the buffer. */
-        pb_istream_t stream = pb_istream_from_buffer(buffer, message_length);
-
-        status = pb_decode(&stream, RemoteDevMessage_fields, &message);
-
-        if (!status)
-        {
-            qInfo() << "Decoding failed: " << PB_GET_ERROR(&stream);
-            return 1;
-        }
-
-        /* Print the data contained in the message. */
-        LOG_INFO(QString("ID: %1, transaction: %2").arg(message.header.unique_id.radio_id).
-                                                    arg(message.header.transaction_id));
-    }
-
-    RadioManager radioManager;
 
     return a.exec();
 }

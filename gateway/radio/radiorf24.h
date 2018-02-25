@@ -11,17 +11,32 @@
 
 namespace luna
 {
+namespace radio
+{
+
 class RadioRF24 : public IRadio
 {
     Q_OBJECT
 
-private:
 public:
     RadioRF24(QObject* parent = nullptr);
-    virtual ~RadioRF24();
-    int check_remotes(void);
-    bool dummy() override;
+    QString getName() override;
+    QObject *getObject() override;
+
+private:
+    QString _name;
+    bool _gameover;
+
 signals:
+    void finished();
+
+public slots:
+    bool start() override;
+    void stop() override;
+    void quit() override;
+
 };
-}
+
+} // radio
+} // luna
 #endif // RADIO_RF24_H

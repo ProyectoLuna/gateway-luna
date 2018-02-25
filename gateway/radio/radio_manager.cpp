@@ -1,24 +1,88 @@
+#include <QThread>
 #include <Logger.h>
 
 #include "radiorf24.h"
 #include "radio_manager.h"
 
 using namespace luna;
+using namespace radio;
 
 RadioManager::RadioManager(QObject *parent) : QObject(parent)
 {
+    _status = RadioManager::Status::RM_STOPPED;
+
     // Add rf24 to radio list
     QSharedPointer<RadioRF24> radiorf24 =
             QSharedPointer<RadioRF24>(new RadioRF24);
-    radioList.append(radiorf24);
+    _radioList.append(radiorf24);
+}
 
-    //QSharedPointer<RadioRF24> r = qSharedPointerCast<RadioRF24>(radiorf24);
-    QObject::connect(radiorf24.data(), SIGNAL(rxMessage(QString)), this, SLOT(onRxMessage(QString)));
+bool RadioManager::start()
+{
+    if (_status == RadioManager::Status::RM_STARTED)
+    {
+        LOG_WARNING("Radio manages is already started");
+        return false;
+    }
 
-    radiorf24->check_remotes();
+    for (auto &radio: _radioList)
+    {
+        QSharedPointer<QThread> radioThread = QSharedPointer<QThread>(new QThread());
+        radioThread->setObjectName(radio->getName());
+
+        _radioThreadList.append(radioThread);
+
+        radio->getObject()->moveToThread(radioThread.data());
+
+        QObject::connect(radioThread.data(), SIGNAL(started()),  radio->getObject(), SLOT(start()));
+        QObject::connect(radio->getObject(), SIGNAL(finished()), radioThread.data(), SLOT(quit()));
+        QObject::connect(radio->getObject(), SIGNAL(finished()), radio->getObject(), SLOT(deleteLater()));
+        QObject::connect(radioThread.data(), SIGNAL(finished()), radioThread.data(), SLOT(deleteLater()));
+
+        QObject::connect(radio->getObject(), SIGNAL(rxMessage(QString)), this, SLOT(onRxMessage(QString)));
+    }
+
+    for (const auto &radio : _radioThreadList)
+    {
+        radio->start();
+    }
+
+    _status = RadioManager::Status::RM_STARTED;
+}
+
+void RadioManager::stop()
+{
+    if (_status == RadioManager::Status::RM_STOPPED)
+    {
+        LOG_WARNING("Radio manages is already stopped");
+        return;
+    }
+
+    LOG_INFO("Stopping radio manager...");
+    for (int i = _radioList.size() - 1; i >= 0; --i)
+    {
+        _radioList[i]->stop();
+    }
+
+    for (auto &radioThread : _radioThreadList)
+    {
+        radioThread->terminate();
+        radioThread->wait();
+        _radioThreadList.removeOne(radioThread);
+    }
+
+    for (int i = _radioList.size() - 1; i >= 0; --i)
+    {
+        _radioList[i]->quit();
+    }
+
+    _status = RadioManager::Status::RM_STOPPED;
+
+    LOG_INFO("Radio manager stopped");
 }
 
 bool RadioManager::onRxMessage(const QString &message)
 {
     LOG_INFO(message);
 }
+

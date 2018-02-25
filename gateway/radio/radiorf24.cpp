@@ -10,15 +10,21 @@
 #include "iradio.h"
 #include "radiorf24.h"
 
-using namespace luna;
+#include "lunapb.h"
 
-RF24 radio(RPI_V2_GPIO_P1_15, BCM2835_SPI_CS0, BCM2835_SPI_SPEED_8MHZ);
-RF24Network network(radio);
-RF24Mesh mesh(radio,network);
+using namespace luna;
+using namespace radio;
+
+RF24 radiorf24(RPI_V2_GPIO_P1_15, BCM2835_SPI_CS0, BCM2835_SPI_SPEED_8MHZ);
+RF24Network network(radiorf24);
+RF24Mesh mesh(radiorf24,network);
 
 RadioRF24::RadioRF24(QObject *parent) : IRadio()
 {
     setParent(parent);
+
+    _name = QString("radioRF24");
+    _gameover = false;
 
     // Set the nodeID to 0 for the master node
     mesh.setNodeID(0);
@@ -26,16 +32,12 @@ RadioRF24::RadioRF24(QObject *parent) : IRadio()
     // Connect to the mesh
     printf("start\n");
     mesh.begin();
-    radio.printDetails();
+    radiorf24.printDetails();
 }
 
-RadioRF24::~RadioRF24() {
-    // TODO Auto-generated destructor stub
-}
-
-int RadioRF24::check_remotes(void)
+bool RadioRF24::start()
 {
-    while (true)
+    while (not _gameover)
     {
         // Call network.update as usual to keep the network updated
         mesh.update();
@@ -45,24 +47,79 @@ int RadioRF24::check_remotes(void)
         mesh.DHCP();
 
         // Check for incoming data from the sensors
-        while (network.available()) {
+        while (network.available())
+        {
             RF24NetworkHeader header;
             network.peek(header);
             RF24NetworkHeader& header_tonode = *(RF24NetworkHeader*)network.frame_buffer;
             const char *msg = "olaqase";
 
-            uint32_t dat = 0;
-            switch (header.type) {
+            uint8_t buffer[256];
+            size_t message_length;
+            bool status;
+            //uint32_t dat = 0;
+            switch (header.type)
+            {
             // Display the incoming millis() values from the sensor nodes
             case 'M':
-                network.read(header, &dat, sizeof(dat));
-                LOG_INFO(QString("Rcv %1 from 0%2").arg(dat).arg(header.from_node));
-                header_tonode.to_node = header.from_node;
-                network.write(header_tonode, (const void *)msg, (unsigned short int)strlen(msg));
+            {
+                message_length = network.read(header, buffer, sizeof(buffer));
+                RemoteDevMessage message = RemoteDevMessage_init_zero;
 
-                emit rxMessage(QString::number(dat));
+                /* Create a stream that reads from the buffer. */
+                pb_istream_t stream = pb_istream_from_buffer(buffer, message_length);
+
+                RepeatedSensorData repeatedData;
+                repeatedData.num = 0;
+                SensorData sensorData[8]; // TODO parameterize
+                repeatedData.data = sensorData;
+
+                message.data.funcs.decode = &decode_sensordata;
+                message.data.arg = &repeatedData;
+
+                status = pb_decode(&stream, RemoteDevMessage_fields, &message);
+
+                if (!status)
+                {
+                    LOG_ERROR(QString("Decoding failed: %1").arg(QString(PB_GET_ERROR(&stream))));
+                    break;
+                }
+
+                LOG_INFO(QString("ID: %1, radioID: %2, transaction: %3")
+                         .arg(message.header.unique_id.id32)
+                         .arg(message.header.unique_id.radio_id)
+                         .arg(message.header.transaction_id)
+                         );
+
+                for (int i = 0; i < repeatedData.num; ++i)
+                {
+                    LOG_INFO(QString("Unit: %1, value: %2")
+                             .arg(repeatedData.data[i].unit)
+                             .arg(repeatedData.data[i].value)
+                             );
+                }
+
+                /* Print the data contained in the message. */
+                LOG_INFO(QString("node: %3").arg(QString::number(header.from_node, 8)));
+
+                header_tonode.to_node = header.from_node;
+
+                bool ret = network.write(header_tonode, (const void *)msg, (unsigned short int)strlen(msg));
+                if (not ret)
+                {
+                    LOG_INFO(QString("Error writing"));
+                }
+
+                //network.read(header, &dat, sizeof(dat));
+                //LOG_INFO(QString("Rcv %1 from %2").arg(dat).arg(QString::number(header.from_node, 8)));
+                //header_tonode.to_node = header.from_node;
+                //network.write(header_tonode, (const void *)msg, (unsigned short int)strlen(msg));
+
+                //emit rxMessage(QString::fromLocal8Bit(reinterpret_cast<char*>(buffer, message_length)));
+                //emit rxMessage(QString::number(message.header.unique_id.radio_id));
 
                 break;
+            }
             default:
                 network.read(header, 0, 0);
                 LOG_WARNING(QString("Rcv bad type %1 from 0%2").arg(header.type,
@@ -71,12 +128,28 @@ int RadioRF24::check_remotes(void)
             }
         }
         delay(2);
-        ::usleep(1000);
     }
     return 0;
 }
 
-bool RadioRF24::dummy()
+QString RadioRF24::getName()
 {
-    return true;
+    return _name;
+}
+
+QObject *RadioRF24::getObject()
+{
+    return this;
+}
+
+void RadioRF24::stop()
+{
+    LOG_INFO("Stopping rf24...");
+    _gameover = true;
+    LOG_INFO("Stopped rf24");
+}
+
+void RadioRF24::quit()
+{
+    emit finished();
 }

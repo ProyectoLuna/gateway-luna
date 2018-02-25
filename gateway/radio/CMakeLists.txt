@@ -6,5 +6,8 @@ add_library (radio SHARED
     ${LibFiles}
     )
 
+target_link_libraries(radio nanopb)
+target_include_directories(radio PRIVATE ${CMAKE_SOURCE_DIR}/protos/nanopb)
+
 set(libName libradio.so)
 add_deployment_file(${libName} lib/)

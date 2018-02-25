@@ -5,9 +5,25 @@ enum RadioId {
     RID_NRF24 = 1;
 }
 
+enum SensorUnits {
+    SU_UNKNOWN = 0;
+    SU_MAH = 1;
+    SU_CELSIUS_DEGREE = 2;
+    SU_FAHRENHEIT_DEGREE = 3;
+    SU_KELVIN_DEGREE = 4;
+    SU_BOOL = 5;
+    SU_TOTAL_NUMBER = 6; // ALWAYS LAST
+}
+
+enum SensorCommandType {
+    SCT_UNKNOWN = 0;
+    SCT_TOGGLE = 1;
+    SCT_TOTAL_NUMBER = 2; // ALWAYS LAST
+}
+
 message RemoteDevUniqueId {
     required RadioId radio_id = 1;
-    uint32 id32 = 2;
+    required uint32 id32 = 2;
 }
 
 message RemoteDevHeader {
@@ -16,11 +32,18 @@ message RemoteDevHeader {
 }
 
 message SensorData {
-    required string data = 1;
+    required SensorUnits unit = 1;
+    required uint32 value = 2;
+}
+
+message SensorCommand {
+    required SensorCommandType command = 1;
+    optional uint32 data = 2;
 }
 
 message RemoteDevData {
-    SensorData sendor_data = 1;
+    repeated SensorData sendor_data = 1;
+    repeated SensorCommand sensor_command = 2;
 }
 
 message RemoteDevMessage {

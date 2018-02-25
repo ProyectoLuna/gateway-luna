@@ -37,6 +37,7 @@ set(
     main.cpp
     daemon.cpp
     excpt.cpp
+    gateway.cpp
     )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -57,6 +58,10 @@ add_subdirectory(radio)
 INCLUDE_DIRECTORIES(radio)
 add_subdirectory(protos)
 INCLUDE_DIRECTORIES(protos/nanopb)
+add_subdirectory(message)
+INCLUDE_DIRECTORIES(message)
+add_subdirectory(device)
+INCLUDE_DIRECTORIES(device)
 
 target_link_libraries(${PROJECT_NAME} Qt5Core)
 target_link_libraries(${PROJECT_NAME} rf24)
