@@ -127,20 +127,20 @@ int main(int argc, char *argv[])
 
     Gateway gateway;
 
-    QSharedPointer<Daemon> daemon;
+    Daemon daemon;
+    daemon.registerSignals({SIGTERM, SIGHUP, SIGINT});
+
+    // Quit application when work is finished
+    QObject::connect(daemon.data(), SIGNAL(finished()), &gateway, SLOT(stop()));
+    QObject::connect(&gateway, SIGNAL(stopped()), &a, SLOT(quit()));
+    
     if (daemonize)
     {
-        try
+        // Run as a UNIX service
+        bool ret = daemon.daemonize("var/run/gateway.pid");
+        if (not ret)
         {
-            daemon = QSharedPointer<Daemon> (new Daemon(nullptr, QString("/var/run/gateway.pid")));
-
-            // Quit application when work is finished
-            QObject::connect(daemon.data(), SIGNAL(finished()), &gateway, SLOT(stop()));
-            QObject::connect(&gateway, SIGNAL(stopped()), &a, SLOT(quit()));
-        }
-        catch (const std::exception &e)
-        {
-            e.what();
+            LOG_ERROR("Gateway service is already running");
             exit(EXIT_FAILURE);
         }
     }
