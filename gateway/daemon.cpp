@@ -2,63 +2,40 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <syslog.h>
+#include <iostream>
 
 #include <QFile>
 #include <QDebug>
 #include <QTextStream>
 #include <QString>
 #include <QSocketNotifier>
-
-#include <Logger.h>
+#include <QFileInfo>
 
 #include "daemon.h"
-#include "excpt.h"
 
 using namespace std;
 using namespace luna;
 
-static int sighupFd[2];
-static int sigtermFd[2];
+static int signalFd[2];
 
-static int setup_unix_signal_handlers()
+static bool setup_unix_signal_handlers(int signal)
 {
-    struct sigaction hup, term;
+    struct sigaction sig = {0};
 
-    hup.sa_handler = Daemon::hupSignalHandler;
-    sigemptyset(&hup.sa_mask);
-    hup.sa_flags = 0;
-    hup.sa_flags |= SA_RESTART;
+    sig.sa_handler = Daemon::signalHandler;
+    sigemptyset(&sig.sa_mask);
+    sig.sa_flags |= SA_RESTART;
 
-    if (sigaction(SIGHUP, &hup, 0) > 0)
-       return 1;
-
-    term.sa_handler = Daemon::termSignalHandler;
-    sigemptyset(&term.sa_mask);
-    term.sa_flags |= SA_RESTART;
-
-    if (sigaction(SIGTERM, &term, 0) > 0)
-       return 2;
-
-    return 0;
-}
-
-Daemon::Daemon(QObject* parent, QString filePath) : QObject(parent)
-{
-    if (checkPid(filePath))
+    if (sigaction(signal, &sig, 0) > 0)
     {
-        LOG_ERROR("Daemon already exists");
-        throw Excpt("Daemon already exists.");
+        return false;
     }
 
-    _pidFile = filePath;
-    writePid();
+    return true;
+}
 
-    daemonize();
-
-    LOG_DEBUG(QString("Process Deamonized, pidfile: %2").arg(_pidFile));
-
-    emit daemonized();
+Daemon::Daemon(QObject *parent) : QObject(parent)
+{
 }
 
 Daemon::~Daemon()
@@ -80,12 +57,11 @@ pid_t Daemon::readPid(const QString &pidFile)
     return line.toInt();
 }
 
-int Daemon::writePid(void)
+int Daemon::writePid()
 {
     QFile file(_pidFile);
     if (!file.open(QIODevice::ReadWrite))
     {
-        LOG_ERROR(QString("Error opening pidfile: %1, %2").arg(_pidFile, strerror(errno)));
         return -1;
     }
 
@@ -107,63 +83,89 @@ int Daemon::checkPid(const QString &pidFile)
     return pid;
 }
 
-void Daemon::daemonize(void)
+bool Daemon::daemonize(const QString &filePath)
 {
-    if (::socketpair(AF_UNIX, SOCK_STREAM, 0, sighupFd))
-       LOG_ERROR("Couldn't create HUP socketpair");
+    _pidFile = filePath;
 
-    if (::socketpair(AF_UNIX, SOCK_STREAM, 0, sigtermFd))
-       LOG_ERROR("Couldn't create TERM socketpair");
-    snHup = new QSocketNotifier(sighupFd[1], QSocketNotifier::Read, this);
-    connect(snHup, SIGNAL(activated(int)), this, SLOT(handleSigHup()));
-    snTerm = new QSocketNotifier(sigtermFd[1], QSocketNotifier::Read, this);
-    connect(snTerm, SIGNAL(activated(int)), this, SLOT(handleSigTerm()));
-
-    // Register signal handler
-    setup_unix_signal_handlers();
+    if (checkPid(_pidFile))
+    {
+        std::cout << "Daemon already exists" << std::endl;
+        return false;
+    }
 
     // Daemonize process
-    if(daemon(0, 0))
-        exit(0);
+    if (daemon(1, 1))
+    {
+        return false;
+    }
+
+    writePid();
+
+    emit daemonized();
+
+    _daemonized = true;
+
+    return true;
 }
 
-void Daemon::finalize(void)
+bool Daemon::registerSignals(const QList<int> &sigList)
 {
-    unlink(_pidFile.toStdString().c_str());
+    if (::socketpair(AF_UNIX, SOCK_STREAM, 0, signalFd))
+    {
+        return false;
+    }
+    _sn = new QSocketNotifier(signalFd[1], QSocketNotifier::Read, this);
+    connect(_sn, SIGNAL(activated(int)), this, SLOT(handleSignal()));
+
+    for (auto sig : sigList)
+    {
+        setup_unix_signal_handlers(sig);
+    }
+
+    return true;
 }
 
-void Daemon::hupSignalHandler(int)
+void Daemon::finalize()
 {
-    char a = 1;
-    ::write(sighupFd[0], &a, sizeof(a));
+    QFileInfo checkFile(_pidFile);
+
+    if (checkFile.exists() && checkFile.isFile())
+    {
+        QFile file(_pidFile);
+        file.remove();
+    }
 }
 
-void Daemon::termSignalHandler(int)
+void Daemon::signalHandler(int signal)
 {
-    char a = 1;
-    ::write(sigtermFd[0], &a, sizeof(a));
+    ::write(signalFd[0], &signal, sizeof(int));
 }
 
-void Daemon::handleSigTerm()
+void Daemon::handleSignal()
 {
-    snTerm->setEnabled(false);
-    char tmp;
-    ::read(sigtermFd[1], &tmp, sizeof(tmp));
+    _sn->setEnabled(false);
+    int signal;
+    ::read(signalFd[1], &signal, sizeof(signal));
+
+    qInfo() << QString("Received %1 signal (%2), proceed to exit").arg(QString(strsignal(signal)), QString::number(signal));
 
     finalize();
-    emit finished();
+    emit stopped();
 
-    snTerm->setEnabled(true);
+    _sn->setEnabled(true);
 }
 
-void Daemon::handleSigHup()
+bool Daemon::isDaemonized() const
 {
-    snHup->setEnabled(false);
-    char tmp;
-    ::read(sighupFd[1], &tmp, sizeof(tmp));
+    return _daemonized;
+}
 
-    finalize();
-    emit finished();
+QString Daemon::name() const
+{
+    return _name;
+}
 
-    snHup->setEnabled(true);
+void Daemon::setName(const QString &name)
+{
+    _name = name;
 }

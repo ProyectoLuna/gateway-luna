@@ -1,52 +1,50 @@
-#ifndef DAEMON_H
-#define DAEMON_H
+#ifndef LUNA_DAEMON_H
+#define LUNA_DAEMON_H
 
 #include <signal.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <cstdbool>
 
 #include <QObject>
 #include <QSocketNotifier>
 
 namespace luna
 {
-class Daemon: public QObject {
+class Daemon: public QObject
+{
     Q_OBJECT
 
 public:
-    Daemon(QObject* parent = nullptr, QString filePath = QString("/var/run/daemon-luna.pid"));
+    Daemon(QObject *parent = nullptr);
     virtual ~Daemon();
-    bool setName(QString &name) {_name = name; return true;}
     static pid_t readPid(const QString &pidFile);
-    int writePid(void);
+    int writePid();
     static int checkPid(const QString &name);
-    void daemonize(void);
-    void finalize(void);
+    bool daemonize(const QString &filePath = "/var/run/luna_daemon.pid");
+    bool registerSignals(const QList<int> &sigList);
+    void finalize();
 
-    // Unix signal handlers.
-    static void hupSignalHandler(int unused);
-    static void termSignalHandler(int unused);
+    static void signalHandler(int unused);
+
+    QString name() const;
+    void setName(const QString &name);
+    bool isDaemonized() const;
 
 public slots:
-    // Qt signal handlers.
-    void handleSigHup();
-    void handleSigTerm();
+    void handleSignal();
 
-Q_SIGNALS:
+signals:
     void daemonized();
     void started();
     void stopped();
-    void finished();
 
 private:
     QString _name;
     QString _pidFile;
+    bool _daemonized = false;
 
-    QSocketNotifier *snHup;
-    QSocketNotifier *snTerm;
+    QSocketNotifier *_sn = nullptr;
 };
 }
-//#include "daemon.moc"
-//#include "moc_daemon.cpp"
-#endif // DAEMON_H
+
+#endif // BYTECH_OVERWATCH_DAEMON_H
