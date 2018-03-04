@@ -2,11 +2,13 @@
 #define RADIO_RF24_H
 
 #include <QObject>
+#include <QHash>
 
 #include <RF24/RF24.h>
 #include <RF24Network/RF24Network.h>
 #include <RF24Mesh/RF24Mesh.h>
 
+//#include "lunapb.h"
 #include "iradio.h"
 
 namespace luna
@@ -26,6 +28,7 @@ public:
 private:
     QString _name;
     bool _gameover;
+//    QHash<RemoteDevHeader, RF24NetworkHeader> _deviceTable;
 
 signals:
     void finished();

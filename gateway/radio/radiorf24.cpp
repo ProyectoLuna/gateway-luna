@@ -104,10 +104,16 @@ bool RadioRF24::start()
 
                 header_tonode.to_node = header.from_node;
 
-                bool ret = network.write(header_tonode, (const void *)msg, (unsigned short int)strlen(msg));
-                if (not ret)
+                int attempts = 0;
+                while (attempts < 3)
                 {
+                    bool ret = network.write(header_tonode, (const void *)msg, (unsigned short int)strlen(msg));
+                    if (ret)
+                    {
+                        break;
+                    }
                     LOG_INFO(QString("Error writing"));
+                    ++attempts;
                 }
 
                 //network.read(header, &dat, sizeof(dat));

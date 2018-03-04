@@ -21,7 +21,7 @@ bool RadioManager::start()
 {
     if (_status == RadioManager::Status::RM_STARTED)
     {
-        LOG_WARNING("Radio manages is already started");
+        LOG_WARNING("Radio manager is already started");
         return false;
     }
 

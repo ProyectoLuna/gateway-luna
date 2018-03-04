@@ -6,6 +6,7 @@
 #include <Logger.h>
 #include <ConsoleAppender.h>
 #include <FileAppender.h>
+#include <qhttpserver.hpp>
 
 #include "daemon.h"
 #include "gateway.h"
@@ -131,7 +132,7 @@ int main(int argc, char *argv[])
     daemon.registerSignals({SIGTERM, SIGHUP, SIGINT});
 
     // Quit application when work is finished
-    QObject::connect(daemon.data(), SIGNAL(finished()), &gateway, SLOT(stop()));
+    QObject::connect(&daemon, SIGNAL(stopped()), &gateway, SLOT(stop()));
     QObject::connect(&gateway, SIGNAL(stopped()), &a, SLOT(quit()));
     
     if (daemonize)

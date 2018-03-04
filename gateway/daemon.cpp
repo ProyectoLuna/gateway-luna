@@ -10,6 +10,7 @@
 #include <QString>
 #include <QSocketNotifier>
 #include <QFileInfo>
+#include <Logger.h>
 
 #include "daemon.h"
 
@@ -20,7 +21,7 @@ static int signalFd[2];
 
 static bool setup_unix_signal_handlers(int signal)
 {
-    struct sigaction sig = {0};
+    struct sigaction sig = {{0}};
 
     sig.sa_handler = Daemon::signalHandler;
     sigemptyset(&sig.sa_mask);
@@ -89,12 +90,12 @@ bool Daemon::daemonize(const QString &filePath)
 
     if (checkPid(_pidFile))
     {
-        std::cout << "Daemon already exists" << std::endl;
+        LOG_ERROR("Daemon already exists");
         return false;
     }
 
     // Daemonize process
-    if (daemon(1, 1))
+    if (daemon(1, 0))
     {
         return false;
     }
@@ -147,7 +148,7 @@ void Daemon::handleSignal()
     int signal;
     ::read(signalFd[1], &signal, sizeof(signal));
 
-    qInfo() << QString("Received %1 signal (%2), proceed to exit").arg(QString(strsignal(signal)), QString::number(signal));
+    LOG_ERROR(QString("Received %1 signal (%2), proceed to exit").arg(QString(strsignal(signal)), QString::number(signal)));
 
     finalize();
     emit stopped();

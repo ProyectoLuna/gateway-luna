@@ -20,6 +20,6 @@ void Gateway::stop()
 {
     LOG_INFO("Stopping gateway...");
     _radioManager->stop();
-    emit stopped();
     LOG_INFO("Gateway stopped");
+    emit stopped();
 }
