@@ -24,6 +24,7 @@ set(CMAKE_AUTOMOC ON)
 include_directories("/opt/poky/2.3/qt5sdk/sysroots/cortexa7hf-neon-vfpv4-poky-linux-gnueabi/usr/include/")
 include_directories("/opt/poky/2.3/qt5sdk/sysroots/cortexa7hf-neon-vfpv4-poky-linux-gnueabi/usr/include/qt5/")
 include_directories("/opt/poky/2.3/qt5sdk/sysroots/cortexa7hf-neon-vfpv4-poky-linux-gnueabi/usr/include/qt5/QtCore")
+include_directories("/opt/poky/2.3/qt5sdk/sysroots/cortexa7hf-neon-vfpv4-poky-linux-gnueabi/usr/include/qt5/QtNetwork")
 
 add_executable(Qt5::moc IMPORTED)
 set_target_properties(Qt5::moc PROPERTIES
@@ -31,6 +32,7 @@ set_target_properties(Qt5::moc PROPERTIES
 )
 
 find_package(Qt5Core)
+find_package(Qt5Network)
 
 set(
     SOURCES
@@ -42,7 +44,7 @@ set(
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MAKE_PROGRAM "/usr/bin/make")
 
@@ -57,8 +59,13 @@ add_subdirectory(message)
 INCLUDE_DIRECTORIES(message)
 add_subdirectory(device)
 INCLUDE_DIRECTORIES(device)
+add_subdirectory(apirest)
+INCLUDE_DIRECTORIES(apirest)
+add_subdirectory(common)
+INCLUDE_DIRECTORIES(common)
 
 target_link_libraries(${PROJECT_NAME} Qt5Core)
+target_link_libraries(${PROJECT_NAME} Qt5Network)
 target_link_libraries(${PROJECT_NAME} rf24)
 target_link_libraries(${PROJECT_NAME} rf24network)
 target_link_libraries(${PROJECT_NAME} rf24mesh)
@@ -66,3 +73,4 @@ target_link_libraries(${PROJECT_NAME} CuteLogger)
 target_link_libraries(${PROJECT_NAME} radio)
 target_link_libraries(${PROJECT_NAME} nanopb)
 target_link_libraries(${PROJECT_NAME} qhttp)
+target_link_libraries(${PROJECT_NAME} apirest)

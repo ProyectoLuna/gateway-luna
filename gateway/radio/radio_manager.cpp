@@ -7,9 +7,10 @@
 using namespace luna;
 using namespace radio;
 
-RadioManager::RadioManager(QObject *parent) : QObject(parent)
+RadioManager::RadioManager(QObject *parent) : common::ServiceBase(parent)
 {
-    _status = RadioManager::Status::RM_STOPPED;
+    _status = common::ServiceBase::Status::STOPPED;
+    _name = "RadioManager";
 
     // Add rf24 to radio list
     QSharedPointer<RadioRF24> radiorf24 =
@@ -19,7 +20,7 @@ RadioManager::RadioManager(QObject *parent) : QObject(parent)
 
 bool RadioManager::start()
 {
-    if (_status == RadioManager::Status::RM_STARTED)
+    if (_status == common::ServiceBase::Status::STARTED)
     {
         LOG_WARNING("Radio manager is already started");
         return false;
@@ -47,12 +48,15 @@ bool RadioManager::start()
         radio->start();
     }
 
-    _status = RadioManager::Status::RM_STARTED;
+    _status = common::ServiceBase::Status::STARTED;
+
+    LOG_INFO("Radio manager started");
+    return true;
 }
 
 void RadioManager::stop()
 {
-    if (_status == RadioManager::Status::RM_STOPPED)
+    if (_status == common::ServiceBase::Status::STOPPED)
     {
         LOG_WARNING("Radio manages is already stopped");
         return;
@@ -76,7 +80,7 @@ void RadioManager::stop()
         _radioList[i]->quit();
     }
 
-    _status = RadioManager::Status::RM_STOPPED;
+    _status = common::ServiceBase::Status::STOPPED;
 
     LOG_INFO("Radio manager stopped");
 }
@@ -84,5 +88,6 @@ void RadioManager::stop()
 bool RadioManager::onRxMessage(const QString &message)
 {
     LOG_INFO(message);
+    return true;
 }
 

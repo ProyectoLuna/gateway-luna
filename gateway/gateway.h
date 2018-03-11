@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include "radio_manager.h"
+#include "apirest.h"
 
 namespace luna
 {
@@ -17,6 +18,7 @@ public:
 
 private:
     radio::RadioManager *_radioManager;
+    Apirest *_apirest;
 
 signals:
     void stopped();
