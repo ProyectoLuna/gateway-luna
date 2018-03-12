@@ -16,9 +16,6 @@ macro(add_deployment_directory SRC DEST)
     endforeach(filename)
 endmacro()
 
-project(gateway)
-
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
 include_directories("/opt/poky/2.3/qt5sdk/sysroots/cortexa7hf-neon-vfpv4-poky-linux-gnueabi/usr/include/")
@@ -34,43 +31,19 @@ set_target_properties(Qt5::moc PROPERTIES
 find_package(Qt5Core)
 find_package(Qt5Network)
 
-set(
-    SOURCES
-    main.cpp
-    daemon.cpp
-    excpt.cpp
-    gateway.cpp
-    )
-
-add_executable(${PROJECT_NAME} ${SOURCES})
-
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MAKE_PROGRAM "/usr/bin/make")
 
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -mfloat-abi=hard")
-SET(CMAKE_C_FLAGS  "${CMAKE_CXX_FLAGS} -mfloat-abi=hard")
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -mfloat-abi=hard")
+set(CMAKE_C_FLAGS  "${CMAKE_CXX_FLAGS} -mfloat-abi=hard")
 
-add_subdirectory(radio)
-INCLUDE_DIRECTORIES(radio)
-add_subdirectory(protos)
-INCLUDE_DIRECTORIES(protos/nanopb)
-add_subdirectory(message)
-INCLUDE_DIRECTORIES(message)
-add_subdirectory(device)
-INCLUDE_DIRECTORIES(device)
-add_subdirectory(apirest)
-INCLUDE_DIRECTORIES(apirest)
-add_subdirectory(common)
-INCLUDE_DIRECTORIES(common)
+set(LUNA_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src")
 
-target_link_libraries(${PROJECT_NAME} Qt5Core)
-target_link_libraries(${PROJECT_NAME} Qt5Network)
-target_link_libraries(${PROJECT_NAME} rf24)
-target_link_libraries(${PROJECT_NAME} rf24network)
-target_link_libraries(${PROJECT_NAME} rf24mesh)
-target_link_libraries(${PROJECT_NAME} CuteLogger)
-target_link_libraries(${PROJECT_NAME} radio)
-target_link_libraries(${PROJECT_NAME} nanopb)
-target_link_libraries(${PROJECT_NAME} qhttp)
-target_link_libraries(${PROJECT_NAME} apirest)
+add_subdirectory(src/gateway)
+add_subdirectory(src/radio)
+add_subdirectory(src/protos)
+add_subdirectory(src/message)
+add_subdirectory(src/device)
+add_subdirectory(src/apirest)
+add_subdirectory(src/common)
