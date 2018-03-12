@@ -1,16 +1,13 @@
 #include <unistd.h>
-
 #include <stdint.h>
 #include <string.h>
-
 #include <QString>
-
 #include <Logger.h>
 
 #include "iradio.h"
 #include "radiorf24.h"
-
 #include "lunapb.h"
+#include "message.h"
 
 using namespace luna;
 using namespace radio;
@@ -66,12 +63,12 @@ bool RadioRF24::start()
                 message_length = network.read(header, buffer, sizeof(buffer));
                 RemoteDevMessage message = RemoteDevMessage_init_zero;
 
-                /* Create a stream that reads from the buffer. */
+                // Create a stream that reads from the buffer
                 pb_istream_t stream = pb_istream_from_buffer(buffer, message_length);
 
                 RepeatedSensorData repeatedData;
                 repeatedData.num = 0;
-                SensorData sensorData[8]; // TODO parameterize
+                SensorData sensorData[8]; // TODO parameterize, allowed max sensor data
                 repeatedData.data = sensorData;
 
                 message.data.funcs.decode = &decode_sensordata;
@@ -81,11 +78,11 @@ bool RadioRF24::start()
 
                 if (!status)
                 {
-                    LOG_ERROR(QString("Decoding failed: %1").arg(QString(PB_GET_ERROR(&stream))));
+                    LOG_WARNING(QString("Decoding failed: %1").arg(QString(PB_GET_ERROR(&stream))));
                     break;
                 }
 
-                LOG_INFO(QString("ID: %1, radioID: %2, transaction: %3")
+                LOG_DEBUG(QString("ID: %1, radioID: %2, transaction: %3")
                          .arg(message.header.unique_id.id32)
                          .arg(message.header.unique_id.radio_id)
                          .arg(message.header.transaction_id)
@@ -93,14 +90,14 @@ bool RadioRF24::start()
 
                 for (int i = 0; i < repeatedData.num; ++i)
                 {
-                    LOG_INFO(QString("Unit: %1, value: %2")
+                    LOG_DEBUG(QString("Unit: %1, value: %2")
                              .arg(repeatedData.data[i].unit)
                              .arg(repeatedData.data[i].value)
                              );
                 }
 
                 /* Print the data contained in the message. */
-                LOG_INFO(QString("node: %3").arg(QString::number(header.from_node, 8)));
+                LOG_DEBUG(QString("node: %3").arg(QString::number(header.from_node, 8)));
 
                 header_tonode.to_node = header.from_node;
 
@@ -112,7 +109,7 @@ bool RadioRF24::start()
                     {
                         break;
                     }
-                    LOG_INFO(QString("Error writing"));
+                    LOG_WARNING(QString("Error writing"));
                     ++attempts;
                 }
 

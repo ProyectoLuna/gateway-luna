@@ -1,17 +1,26 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
-#include <QObject>
+#include "lunapb.h"
 
-class Message : public QObject
+namespace luna
 {
-    Q_OBJECT
+namespace message
+{
+
+template<class T>
+class Message
+{
 public:
-    explicit Message(QObject *parent = nullptr);
+    Message();
+    Message(T* proto);
+    ~Message();
+    void setProto(T* proto);
 
-signals:
-
-public slots:
+private:
+    T* _proto;
 };
 
+}
+}
 #endif // MESSAGE_H
