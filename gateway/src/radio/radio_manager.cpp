@@ -1,14 +1,20 @@
 #include <QThread>
 #include <Logger.h>
+#include <QSharedPointer>
 
 #include "radiorf24.h"
 #include "radio_manager.h"
+#include "message/message.h"
+#include "message/messagemanager.h"
+#include "protos/nanopb/lunapb.h"
 
 using namespace luna;
 using namespace radio;
 
 RadioManager::RadioManager(QObject *parent) : common::ServiceBase(parent)
 {
+    qRegisterMetaType<RemoteDevMessage*>("RemoteDevMessage*");
+
     _status = common::ServiceBase::Status::STOPPED;
     _name = "RadioManager";
 
@@ -40,7 +46,7 @@ bool RadioManager::start()
         QObject::connect(radio->getObject(), SIGNAL(finished()), radio->getObject(), SLOT(deleteLater()));
         QObject::connect(radioThread.data(), SIGNAL(finished()), radioThread.data(), SLOT(deleteLater()));
 
-        QObject::connect(radio->getObject(), SIGNAL(rxMessage(QString)), this, SLOT(onRxMessage(QString)));
+        QObject::connect(radio->getObject(), SIGNAL(rxMessage(RemoteDevMessage*)), this, SLOT(onRxMessage(RemoteDevMessage*)));
     }
 
     for (const auto &radio : _radioThreadList)
@@ -85,9 +91,15 @@ void RadioManager::stop()
     LOG_INFO("Radio manager stopped");
 }
 
-bool RadioManager::onRxMessage(const QString &message)
+bool RadioManager::onRxMessage(RemoteDevMessage *rawMessage)
 {
-    LOG_INFO(message);
+    message::Message<RemoteDevMessage> message(rawMessage);
+    LOG_DEBUG(QString("ID: %1, radioID: %2, transaction: %3")
+              .arg(rawMessage->header.unique_id.id32)
+              .arg(rawMessage->header.unique_id.radio_id)
+              .arg(rawMessage->header.transaction_id)
+              );
+
     return true;
 }
 

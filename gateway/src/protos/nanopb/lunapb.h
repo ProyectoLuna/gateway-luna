@@ -6,7 +6,6 @@ extern "C"
 #include "pb_encode.h"
 #include "pb_decode.h"
 #include "remote_devs.pb.h"
-}
 
 typedef struct RepeatedSensorData
 {
@@ -20,7 +19,7 @@ typedef struct RepeatedSensorCommand
     int num;
 } RepeatedSensorCommand;
 
-bool decode_sensordata(pb_istream_t *stream, const pb_field_t *field, void **arg)
+static bool decode_sensordata(pb_istream_t *stream, const pb_field_t *field, void **arg)
 {
     RepeatedSensorData *repeatedData = *((RepeatedSensorData**)arg);
 
@@ -38,7 +37,7 @@ bool decode_sensordata(pb_istream_t *stream, const pb_field_t *field, void **arg
     return true;
 }
 
-bool encode_repeated_sensordata(pb_ostream_t *stream, const pb_field_t *field, void * const *arg)
+static bool encode_repeated_sensordata(pb_ostream_t *stream, const pb_field_t *field, void * const *arg)
 {
     RepeatedSensorData *repeatedData = *((RepeatedSensorData**)arg);
 
@@ -55,7 +54,7 @@ bool encode_repeated_sensordata(pb_ostream_t *stream, const pb_field_t *field, v
     return true;
 }
 
-bool decode_sensorcommand(pb_istream_t *stream, const pb_field_t *field, void **arg)
+static bool decode_sensorcommand(pb_istream_t *stream, const pb_field_t *field, void **arg)
 {
     RepeatedSensorCommand *repeatedData = *((RepeatedSensorCommand**)arg);
 
@@ -73,7 +72,7 @@ bool decode_sensorcommand(pb_istream_t *stream, const pb_field_t *field, void **
     return true;
 }
 
-bool encode_repeated_sensorcommand(pb_ostream_t *stream, const pb_field_t *field, void * const *arg)
+static bool encode_repeated_sensorcommand(pb_ostream_t *stream, const pb_field_t *field, void * const *arg)
 {
     RepeatedSensorCommand *repeatedData = *((RepeatedSensorCommand**)arg);
 
@@ -90,4 +89,5 @@ bool encode_repeated_sensorcommand(pb_ostream_t *stream, const pb_field_t *field
     return true;
 }
 
+}
 #endif // LUNA_PROTOS_NANOPB_LUNAPB_H

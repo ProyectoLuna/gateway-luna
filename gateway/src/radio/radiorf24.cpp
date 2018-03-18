@@ -6,7 +6,7 @@
 
 #include "iradio.h"
 #include "radiorf24.h"
-#include "lunapb.h"
+#include "protos/nanopb/lunapb.h"
 #include "message/message.h"
 
 using namespace luna;
@@ -16,7 +16,7 @@ RF24 radiorf24(RPI_V2_GPIO_P1_15, BCM2835_SPI_CS0, BCM2835_SPI_SPEED_8MHZ);
 RF24Network network(radiorf24);
 RF24Mesh mesh(radiorf24,network);
 
-RadioRF24::RadioRF24(QObject *parent) : IRadio()
+RadioRF24::RadioRF24(QObject *parent) : RadioBase(parent)
 {
     setParent(parent);
 
@@ -61,7 +61,8 @@ bool RadioRF24::start()
             case 'M':
             {
                 message_length = network.read(header, buffer, sizeof(buffer));
-                RemoteDevMessage message = RemoteDevMessage_init_zero;
+                RemoteDevMessage *message = new RemoteDevMessage;
+                *message = RemoteDevMessage_init_zero;
 
                 // Create a stream that reads from the buffer
                 pb_istream_t stream = pb_istream_from_buffer(buffer, message_length);
@@ -71,10 +72,10 @@ bool RadioRF24::start()
                 SensorData sensorData[8]; // TODO parameterize, allowed max sensor data
                 repeatedData.data = sensorData;
 
-                message.data.funcs.decode = &decode_sensordata;
-                message.data.arg = &repeatedData;
+                message->data.funcs.decode = &decode_sensordata;
+                message->data.arg = &repeatedData;
 
-                status = pb_decode(&stream, RemoteDevMessage_fields, &message);
+                status = pb_decode(&stream, RemoteDevMessage_fields, message);
 
                 if (!status)
                 {
@@ -83,9 +84,9 @@ bool RadioRF24::start()
                 }
 
                 LOG_DEBUG(QString("ID: %1, radioID: %2, transaction: %3")
-                         .arg(message.header.unique_id.id32)
-                         .arg(message.header.unique_id.radio_id)
-                         .arg(message.header.transaction_id)
+                         .arg(message->header.unique_id.id32)
+                         .arg(message->header.unique_id.radio_id)
+                         .arg(message->header.transaction_id)
                          );
 
                 for (int i = 0; i < repeatedData.num; ++i)
@@ -118,8 +119,7 @@ bool RadioRF24::start()
                 //header_tonode.to_node = header.from_node;
                 //network.write(header_tonode, (const void *)msg, (unsigned short int)strlen(msg));
 
-                //emit rxMessage(QString::fromLocal8Bit(reinterpret_cast<char*>(buffer, message_length)));
-                //emit rxMessage(QString::number(message.header.unique_id.radio_id));
+                emit rxMessage(message);
 
                 break;
             }
@@ -133,16 +133,6 @@ bool RadioRF24::start()
         delay(2);
     }
     return 0;
-}
-
-QString RadioRF24::getName()
-{
-    return _name;
-}
-
-QObject *RadioRF24::getObject()
-{
-    return this;
 }
 
 void RadioRF24::stop()

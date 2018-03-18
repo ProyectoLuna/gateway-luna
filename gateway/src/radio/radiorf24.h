@@ -8,36 +8,30 @@
 #include <RF24Network/RF24Network.h>
 #include <RF24Mesh/RF24Mesh.h>
 
-//#include "lunapb.h"
-#include "iradio.h"
+#include "radiobase.h"
 
 namespace luna
 {
 namespace radio
 {
 
-class RadioRF24 : public IRadio
+class RadioRF24 : public RadioBase
 {
     Q_OBJECT
 
 public:
     RadioRF24(QObject* parent = nullptr);
-    QString getName() override;
-    QObject *getObject() override;
 
 private:
-    QString _name;
     bool _gameover;
 //    QHash<RemoteDevHeader, RF24NetworkHeader> _deviceTable;
 
 signals:
-    void finished();
 
 public slots:
-    bool start() override;
-    void stop() override;
-    void quit() override;
-
+    bool start();
+    void stop();
+    void quit();
 };
 
 } // radio

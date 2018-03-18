@@ -5,8 +5,9 @@
 #include <QList>
 #include <QSharedPointer>
 
-#include "iradio.h"
+#include "radiobase.h"
 #include "common/servicebase.h"
+#include "protos/nanopb/lunapb.h"
 
 namespace luna
 {
@@ -21,11 +22,11 @@ public:
     RadioManager(QObject* parent = nullptr);
 
 private:
-    QList<QSharedPointer<IRadio>> _radioList;
+    QList<QSharedPointer<RadioBase>> _radioList;
     QList<QSharedPointer<QThread>> _radioThreadList;
 
 public slots:
-    bool onRxMessage(const QString &message);
+    bool onRxMessage(RemoteDevMessage* rawMessage);
     bool start();
     void stop();
 };

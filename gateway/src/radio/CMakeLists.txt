@@ -1,7 +1,7 @@
 add_library (radio SHARED
     radio_manager.cpp
+    radiobase.cpp
     radiorf24.cpp
-    iradio.h
     )
 
 target_include_directories(radio PUBLIC ${LUNA_INCLUDE_DIR})
