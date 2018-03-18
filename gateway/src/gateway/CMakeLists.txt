@@ -16,3 +16,4 @@ target_link_libraries(${PROJECT_NAME} CuteLogger)
 target_link_libraries(${PROJECT_NAME} radio)
 target_link_libraries(${PROJECT_NAME} apirest)
 
+add_deployment_file(${PROJECT_NAME} .)
