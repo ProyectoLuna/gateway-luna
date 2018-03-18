@@ -44,6 +44,8 @@ Thumbs.db
 
 # Vim temporary files
 .*.swp
+.*.swn
+.*.swo
 
 # Visual Studio generated files
 *.ib_pdb_index
@@ -76,5 +78,5 @@ Thumbs.db
 QtCreatorDeployment.txt
 
 # nanopb
-gateway/protos/nanopb/src/
-gateway/protos/nanopb/tmp/
+gateway/src/protos/nanopb/src/
+gateway/src/protos/nanopb/tmp/
