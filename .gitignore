@@ -80,3 +80,4 @@ QtCreatorDeployment.txt
 # nanopb
 gateway/src/protos/nanopb/src/
 gateway/src/protos/nanopb/tmp/
+gateway/src/protos/nanopb/protos/
