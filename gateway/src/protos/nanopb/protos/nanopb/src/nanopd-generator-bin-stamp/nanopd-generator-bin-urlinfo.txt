@@ -1,3 +1,0 @@
-repository='external project URL'
-module='http://localhost:8081/artifactory/generic-local/generator-bin.tar.gz'
-tag=''
