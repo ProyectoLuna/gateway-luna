@@ -4,6 +4,7 @@ add_library (message SHARED
     )
 
 target_link_libraries(message nanopb)
+target_link_libraries(message common)
 target_include_directories(message PRIVATE ${LUNA_INCLUDE_DIR})
 
 set(libName libmessage.so)

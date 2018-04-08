@@ -3,6 +3,7 @@
 #include <qhttpserverrequest.hpp>
 #include <Logger.h>
 
+#include "protos/nanopb/lunapb.h"
 #include "apirest.h"
 
 using namespace luna;
@@ -25,7 +26,7 @@ bool Apirest::start()
     }
 
     // listening tcp port or Unix path
-    _server->listen(QHostAddress::Any, 8080, [](qhttp::server::QHttpRequest* req, qhttp::server::QHttpResponse* res) {
+    _server->listen(QHostAddress::Any, 8080, [&](qhttp::server::QHttpRequest* req, qhttp::server::QHttpResponse* res) {
         req->collectData();
 
         req->onEnd([req, res](){
@@ -53,6 +54,23 @@ bool Apirest::start()
                 qhttp::Stringify::toString(req->method()),
                 qPrintable(req->url().toString().toUtf8())
               );
+        QStringList urlList = req->url().toString().split("/");
+
+        LOG_DEBUG(QString("list: %1 %2 %3 %4").arg(urlList[0]).
+                                         arg(urlList[1]).
+                                         arg(urlList[2]).
+                                         arg(urlList[3]));
+        if (urlList.size() == 5)
+        {
+            if (urlList[1] == "gateway" &&
+                    urlList[2] == "command" &&
+                    urlList[3] == "toggle")
+            {
+                bool ok;
+                _deviceManager->execCommand(urlList[4].toULongLong(&ok, 16), SensorCommandType_SCT_TOGGLE);
+            }
+        }
+
         qDebug("[Headers (%d)]", h.size());
         h.forEach([](auto iter) {
             qDebug(" %s : %s",
@@ -83,4 +101,9 @@ void Apirest::stop()
     _status = common::ServiceBase::Status::STOPPED;
 
     LOG_INFO("ApiRest stopped");
+}
+
+void Apirest::setDeviceManager(QSharedPointer<device::DeviceManager> deviceManager)
+{
+    _deviceManager = deviceManager;
 }

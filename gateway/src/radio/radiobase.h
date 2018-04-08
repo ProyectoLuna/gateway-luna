@@ -2,7 +2,10 @@
 #define LUNA_RADIO_RADIOBASE_H
 
 #include <QObject>
+#include <QSharedPointer>
 #include "iradio.h"
+#include "protos/nanopb/lunapb.h"
+#include "message/message.h"
 
 namespace luna
 {
@@ -17,18 +20,21 @@ public:
     RadioBase(QObject *parent = nullptr);
     QString getName() override;
     QObject *getObject() override;
+    RadioId getRadioId() const;
 
 protected:
     QString _name;
+    RadioId _radioId;
 
 signals:
     bool rxMessage(RemoteDevMessage* message);
     void finished();
 
 public slots:
-    bool start();
-    void stop();
-    void quit();
+    virtual bool start();
+    virtual void stop();
+    virtual void quit();
+    virtual bool send(QSharedPointer<message::Message<RepeatedSensorCommand>> message);
 };
 
 }

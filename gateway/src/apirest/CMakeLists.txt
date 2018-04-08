@@ -6,6 +6,7 @@ target_link_libraries(apirest common)
 target_link_libraries(apirest Qt5Core)
 target_link_libraries(apirest Qt5Network)
 target_link_libraries(apirest qhttp)
+target_link_libraries(apirest device)
 target_include_directories(apirest PUBLIC ${LUNA_INCLUDE_DIR})
 
 set(libName libapirest.so)

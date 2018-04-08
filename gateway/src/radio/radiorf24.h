@@ -3,12 +3,12 @@
 
 #include <QObject>
 #include <QHash>
+#include <QSharedPointer>
 
-#include <RF24/RF24.h>
 #include <RF24Network/RF24Network.h>
-#include <RF24Mesh/RF24Mesh.h>
-
 #include "radiobase.h"
+
+struct RF24NetworkHeader;
 
 namespace luna
 {
@@ -22,16 +22,17 @@ class RadioRF24 : public RadioBase
 public:
     RadioRF24(QObject* parent = nullptr);
 
-private:
-    bool _gameover;
-//    QHash<RemoteDevHeader, RF24NetworkHeader> _deviceTable;
-
 signals:
 
 public slots:
-    bool start();
-    void stop();
-    void quit();
+    bool start() override;
+    void stop() override;
+    void quit() override;
+    bool send(QSharedPointer<message::Message<RepeatedSensorCommand>> message) override;
+
+private:
+    bool _gameover;
+    QHash<quint32, RF24NetworkHeader> _deviceTable;
 };
 
 } // radio

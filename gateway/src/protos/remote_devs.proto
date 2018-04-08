@@ -12,7 +12,8 @@ enum SensorUnits {
     SU_FAHRENHEIT_DEGREE = 3;
     SU_KELVIN_DEGREE = 4;
     SU_BOOL = 5;
-    SU_TOTAL_NUMBER = 6; // ALWAYS LAST
+    SU_RELAYSTATUS = 6;
+    SU_TOTAL_NUMBER = 7; // ALWAYS LAST
 }
 
 enum SensorCommandType {
@@ -33,7 +34,7 @@ message RemoteDevHeader {
 
 message SensorData {
     required SensorUnits unit = 1;
-    required uint32 value = 2;
+    required int32 value = 2;
 }
 
 message SensorCommand {

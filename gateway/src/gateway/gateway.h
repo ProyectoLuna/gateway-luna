@@ -2,11 +2,31 @@
 #define LUNA_GATEWAY_GATEWAY_H
 
 #include <QObject>
-#include "radio/radio_manager.h"
-#include "apirest/apirest.h"
+#include <QSharedPointer>
 
 namespace luna
 {
+
+namespace radio
+{
+class RadioManager;
+}
+
+namespace device
+{
+class DeviceManager;
+}
+
+namespace apirest
+{
+class Apirest;
+}
+
+namespace message
+{
+class MessageManager;
+}
+
 namespace gateway
 {
 
@@ -19,8 +39,10 @@ public:
     bool start();
 
 private:
-    radio::RadioManager *_radioManager;
-    apirest::Apirest *_apirest;
+    QSharedPointer<radio::RadioManager> _radioManager;
+    QSharedPointer<apirest::Apirest> _apirest;
+    QSharedPointer<device::DeviceManager> _deviceManager;
+    QSharedPointer<message::MessageManager> _messageManager;
 
 signals:
     void stopped();

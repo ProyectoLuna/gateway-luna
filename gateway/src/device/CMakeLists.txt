@@ -4,6 +4,7 @@ add_library (device SHARED
     )
 
 target_link_libraries(device nanopb)
+target_link_libraries(device common)
 target_include_directories(device PRIVATE ${LUNA_INCLUDE_DIR})
 
 set(libName libdevice.so)

@@ -138,7 +138,6 @@ int main(int argc, char *argv[])
     
     if (daemonize)
     {
-        // Run as a UNIX service
         bool ret = daemon.daemonize("var/run/gateway.pid");
         if (not ret)
         {

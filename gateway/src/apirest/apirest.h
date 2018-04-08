@@ -6,6 +6,7 @@
 #include <qhttpserverresponse.hpp>
 #include <qhttpserverrequest.hpp>
 
+#include "device/devicemanager.h"
 #include "common/servicebase.h"
 
 namespace luna
@@ -19,6 +20,8 @@ class Apirest : public common::ServiceBase
 public:
     Apirest(QObject *parent = nullptr);
 
+    void setDeviceManager(QSharedPointer<device::DeviceManager> deviceManager);
+
 signals:
 
 public slots:
@@ -27,6 +30,7 @@ public slots:
 
 private:
     qhttp::server::QHttpServer* _server;
+    QSharedPointer<device::DeviceManager> _deviceManager;
 };
 
 }

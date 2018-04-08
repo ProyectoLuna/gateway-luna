@@ -2,11 +2,14 @@
 #include <Logger.h>
 #include <QSharedPointer>
 
+#include "common/servicebase.h"
+#include "radiobase.h"
 #include "radiorf24.h"
 #include "radio_manager.h"
 #include "message/message.h"
 #include "message/messagemanager.h"
 #include "protos/nanopb/lunapb.h"
+#include "device/devicemanager.h"
 
 using namespace luna;
 using namespace radio;
@@ -20,7 +23,7 @@ RadioManager::RadioManager(QObject *parent) : common::ServiceBase(parent)
 
     // Add rf24 to radio list
     QSharedPointer<RadioRF24> radiorf24 =
-            QSharedPointer<RadioRF24>(new RadioRF24);
+            QSharedPointer<RadioRF24>(new RadioRF24());
     _radioList.append(radiorf24);
 }
 
@@ -91,15 +94,46 @@ void RadioManager::stop()
     LOG_INFO("Radio manager stopped");
 }
 
+void RadioManager::setDeviceManager(QSharedPointer<device::DeviceManager> deviceManager)
+{
+    _deviceManager = deviceManager;
+}
+
 bool RadioManager::onRxMessage(RemoteDevMessage *rawMessage)
 {
-    message::Message<RemoteDevMessage> message(rawMessage);
+    QSharedPointer<message::Message<RepeatedSensorData>> message =
+            QSharedPointer<message::Message<RepeatedSensorData>>(new message::Message<RepeatedSensorData>(rawMessage));
+
     LOG_DEBUG(QString("ID: %1, radioID: %2, transaction: %3")
               .arg(rawMessage->header.unique_id.id32)
               .arg(rawMessage->header.unique_id.radio_id)
               .arg(rawMessage->header.transaction_id)
               );
 
+    _deviceManager->updateDevice(message);
     return true;
+}
+
+bool RadioManager::onTxMessage(QSharedPointer<message::Message<RepeatedSensorCommand>> message)
+{
+    RemoteDevMessage *nanopb = message->getProto();
+    RadioId radioId = nanopb->header.unique_id.radio_id;
+    quint32 devId = nanopb->header.unique_id.id32;
+
+    for (auto &radio : _radioList)
+    {
+        if (radio->getRadioId() == radioId)
+        {
+            if (not radio->send(message))
+            {
+                LOG_WARNING(QString("Error sending message, radioId: %1, devid: %2").arg(radioId).arg(devId));
+                return false;
+            }
+            return true;
+        }
+    }
+
+    LOG_WARNING(QString("Error sending message, radioId: %1 not found").arg(radioId).arg(devId));
+    return false;
 }
 

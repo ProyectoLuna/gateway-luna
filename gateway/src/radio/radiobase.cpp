@@ -2,6 +2,8 @@
 
 #include <Logger.h>
 #include "radiobase.h"
+#include "message/message.h"
+#include "protos/nanopb/lunapb.h"
 
 using namespace luna;
 using namespace radio;
@@ -9,6 +11,7 @@ using namespace radio;
 RadioBase::RadioBase(QObject *parent) : QObject(parent)
 {
     _name = "RadioBase";
+    _radioId = RadioId_RID_UNKNOWN;
 }
 
 QString RadioBase::getName()
@@ -37,4 +40,16 @@ void RadioBase::stop()
 void RadioBase::quit()
 {
     emit finished();
+}
+
+bool RadioBase::send(QSharedPointer<message::Message<RepeatedSensorCommand>> message)
+{
+    Q_UNUSED(message);
+    LOG_INFO("Generic send");
+    return true;
+}
+
+RadioId RadioBase::getRadioId() const
+{
+    return _radioId;
 }

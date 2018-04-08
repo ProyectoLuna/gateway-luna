@@ -5,14 +5,22 @@
 #include <QList>
 #include <QSharedPointer>
 
-#include "radiobase.h"
 #include "common/servicebase.h"
 #include "protos/nanopb/lunapb.h"
+#include "message/message.h"
 
 namespace luna
 {
+
+namespace device
+{
+class DeviceManager;
+}
+
 namespace radio
 {
+
+class RadioBase;
 
 class RadioManager : public common::ServiceBase
 {
@@ -20,15 +28,18 @@ class RadioManager : public common::ServiceBase
 
 public:
     RadioManager(QObject* parent = nullptr);
+    void setDeviceManager(QSharedPointer<device::DeviceManager> deviceManager);
+
+public slots:
+    bool onRxMessage(RemoteDevMessage* rawMessage);
+    bool onTxMessage(QSharedPointer<message::Message<RepeatedSensorCommand>> message);
+    bool start();
+    void stop();
 
 private:
     QList<QSharedPointer<RadioBase>> _radioList;
     QList<QSharedPointer<QThread>> _radioThreadList;
-
-public slots:
-    bool onRxMessage(RemoteDevMessage* rawMessage);
-    bool start();
-    void stop();
+    QSharedPointer<device::DeviceManager> _deviceManager;
 };
 
 } // radio

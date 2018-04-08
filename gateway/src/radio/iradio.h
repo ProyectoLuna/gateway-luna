@@ -2,7 +2,6 @@
 #define LUNA_RADIO_IRADIO_H
 
 #include <QObject>
-#include "protos/nanopb/lunapb.h"
 
 class QString;
 

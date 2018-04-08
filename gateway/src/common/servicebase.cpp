@@ -24,9 +24,12 @@ bool ServiceBase::start()
 {
     if (_status == ServiceBase::Status::STARTED)
     {
-        LOG_WARNING("ServiceBase is already started");
+        LOG_WARNING(QString("%1 is already started").arg(_name));
         return false;
     }
+
+    _status = ServiceBase::Status::STARTED;
+    LOG_INFO(QString("%1 started").arg(_name));
     return true;
 }
 
@@ -34,7 +37,10 @@ void ServiceBase::stop()
 {
     if (_status == ServiceBase::Status::STOPPED)
     {
-        LOG_WARNING("ServiceBase is already stopped");
+        LOG_WARNING(QString("%1 is already stopped").arg(_name));
         return;
     }
+
+    _status = ServiceBase::Status::STOPPED;
+    LOG_INFO(QString("%1 stopped").arg(_name));
 }

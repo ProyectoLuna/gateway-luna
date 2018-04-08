@@ -14,7 +14,7 @@ set(genFile1 ${CMAKE_CURRENT_SOURCE_DIR}/remote_devs.pb.c)
 # Autogenerate nanopb files
 if(${protosFile} IS_NEWER_THAN ${genFile1})
     message(STATUS "execute protoc cmd")
-    set (protoc_cmd "${CMAKE_CURRENT_SOURCE_DIR}/src/nanopd-generator-bin/protoc")
+    set (protoc_cmd "${CMAKE_CURRENT_SOURCE_DIR}/protos/nanopb/src/nanopd-generator-bin/protoc")
     set (protoc_arg1 "--nanopb_out=${CMAKE_CURRENT_SOURCE_DIR}")
     set (protoc_arg2 "--proto_path=${CMAKE_CURRENT_SOURCE_DIR}/..")
     set (protoc_arg3 "${CMAKE_CURRENT_SOURCE_DIR}/../remote_devs.proto")
