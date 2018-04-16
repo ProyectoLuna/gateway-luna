@@ -35,6 +35,7 @@ public:
     RadioId getRadioId() const;
     quint64 getUniqueId() const;
     quint32 getId() const;
+    QHash<SensorUnits, qint32> getSensorData() const;
 
 signals:
 

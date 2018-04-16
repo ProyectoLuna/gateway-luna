@@ -9,6 +9,8 @@
 #include "device/devicemanager.h"
 #include "common/servicebase.h"
 
+class QJsonObject;
+
 namespace luna
 {
 namespace apirest
@@ -27,6 +29,11 @@ signals:
 public slots:
     bool start();
     void stop();
+
+protected:
+    bool checkUrl(const QString &url);
+    QJsonObject handleRequest(const QString &url);
+    static QByteArray serializeJson(const QJsonObject &jsonObj);
 
 private:
     qhttp::server::QHttpServer* _server;

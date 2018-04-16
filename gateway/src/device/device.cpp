@@ -6,17 +6,6 @@
 using namespace luna;
 using namespace device;
 
-static QHash<SensorUnits, QString> sensorUnitsTranslator =
-{
-    {SensorUnits::SensorUnits_SU_UNKNOWN, "Unknow"},
-    {SensorUnits::SensorUnits_SU_MAH, "mAh"},
-    {SensorUnits::SensorUnits_SU_CELSIUS_DEGREE, "ºC"},
-    {SensorUnits::SensorUnits_SU_FAHRENHEIT_DEGREE, "ºF"},
-    {SensorUnits::SensorUnits_SU_KELVIN_DEGREE, "K"},
-    {SensorUnits::SensorUnits_SU_BOOL, "Bool"},
-    {SensorUnits::SensorUnits_SU_RELAYSTATUS, "Relay status"}
-};
-
 Device::Device(QObject *parent) : QObject(parent)
 {
 
@@ -86,6 +75,11 @@ quint64 Device::getUniqueId() const
 quint32 Device::getId() const
 {
     return _id;
+}
+
+QHash<SensorUnits, qint32> Device::getSensorData() const
+{
+    return _sensorData;
 }
 
 void Device::setMessageMng(const QSharedPointer<message::MessageManager> messageMng)

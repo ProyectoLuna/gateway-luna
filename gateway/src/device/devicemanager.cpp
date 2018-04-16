@@ -71,3 +71,13 @@ void DeviceManager::setMessageMng(const QSharedPointer<message::MessageManager> 
 {
     _messageMng = messageMng;
 }
+
+QList<QSharedPointer<Device> > DeviceManager::getDevices()
+{
+    return _deviceHash.values();
+}
+
+QSharedPointer<Device> DeviceManager::getDevice(quint64 deviceId)
+{
+    return _deviceHash[deviceId];
+}
