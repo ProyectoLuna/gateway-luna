@@ -150,6 +150,14 @@ QJsonObject Apirest::handleRequest(const QString &url)
         return jsonObjectMain;
     }
 
+    if (urlList.size() < 5)
+    {
+        QString retString = QString("Incomplete url: %1").arg(url);
+        jsonObjectResp["error"] = retString;
+        jsonObjectMain["application/json"] = jsonObjectResp;
+        return jsonObjectMain;
+    }
+
     QString typeAction = urlList[4];
     if (typeAction == "command")
     {
@@ -223,6 +231,10 @@ QByteArray Apirest::serializeJson(const QJsonObject &jsonObj)
 bool Apirest::checkUrl(const QString &url)
 {
     QStringList urlList = url.split("/");
+    if (urlList.size() < 4)
+    {
+        return false;
+    }
     QString keyValue = urlList[1];
     QString subModule = urlList[2];
     if (keyValue != "gateway" ||
