@@ -120,6 +120,10 @@ QJsonObject Apirest::handleRequest(const QString &url)
         int deviceCount = 0;
         for (auto device : _deviceManager->getDevices())
         {
+            if (not device)
+            {
+                continue;
+            }
             QJsonObject jsonObjectDevice;
             jsonObjectDevice["id"] = QString::number(device->getUniqueId(), 16);
             QHashIterator<SensorUnits, qint32> i(device->getSensorData());
@@ -176,6 +180,13 @@ QJsonObject Apirest::handleRequest(const QString &url)
     {
         QJsonObject jsonObjectDevice;
         auto device = _deviceManager->getDevice(devid);
+        if (not device)
+        {
+            QString retString = QString("Device 0x%1 not found").arg(QString::number(devid, 16));
+            jsonObjectResp["error"] = retString;
+            jsonObjectMain["application/json"] = jsonObjectResp;
+            return jsonObjectMain;
+        }
         jsonObjectDevice["id"] = QString::number(device->getUniqueId(), 16);
         QHashIterator<SensorUnits, qint32> i(device->getSensorData());
         while (i.hasNext())
@@ -184,6 +195,7 @@ QJsonObject Apirest::handleRequest(const QString &url)
             jsonObjectDevice[sensorUnitsTranslator[i.key()]] = i.value();
         }
 
+        jsonObjectResp["status"] = jsonObjectDevice;
         jsonObjectResp["result"] = true;
         jsonObjectMain["application/json"] = jsonObjectResp;
         return jsonObjectMain;

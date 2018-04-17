@@ -79,5 +79,9 @@ QList<QSharedPointer<Device> > DeviceManager::getDevices()
 
 QSharedPointer<Device> DeviceManager::getDevice(quint64 deviceId)
 {
+    if (not _deviceHash.contains(deviceId))
+    {
+        return QSharedPointer<Device>();
+    }
     return _deviceHash[deviceId];
 }
