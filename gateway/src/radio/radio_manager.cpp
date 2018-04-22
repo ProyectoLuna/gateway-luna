@@ -104,11 +104,11 @@ bool RadioManager::onRxMessage(RemoteDevMessage *rawMessage)
     QSharedPointer<message::Message<RepeatedSensorData>> message =
             QSharedPointer<message::Message<RepeatedSensorData>>(new message::Message<RepeatedSensorData>(rawMessage));
 
-    LOG_DEBUG(QString("ID: %1, radioID: %2, transaction: %3")
-              .arg(rawMessage->header.unique_id.id32)
-              .arg(rawMessage->header.unique_id.radio_id)
-              .arg(rawMessage->header.transaction_id)
-              );
+    //LOG_DEBUG(QString("ID: %1, radioID: %2, transaction: %3")
+    //          .arg(rawMessage->header.unique_id.id32)
+    //          .arg(rawMessage->header.unique_id.radio_id)
+    //          .arg(rawMessage->header.transaction_id)
+    //          );
 
     _deviceManager->updateDevice(message);
     return true;

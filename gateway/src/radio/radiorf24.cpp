@@ -131,8 +131,9 @@ bool RadioRF24::start()
             }
             default:
                 network.read(header, 0, 0);
-                LOG_WARNING(QString("Rcv bad type %1 from 0%2").arg(header.type,
-                                                                    header.from_node));
+                LOG_WARNING(QString("Rcv bad type %1 from 0%2")
+                            .arg(header.type)
+                            .arg(header.from_node));
                 break;
             }
         }
@@ -175,16 +176,10 @@ bool RadioRF24::send(QSharedPointer<message::Message<RepeatedSensorCommand>> mes
         return false;
     }
 
-    int attempts = 0;
-    while (attempts < 3)
+    bool ret = network.write(_deviceTable[devid], (const void *)&stream, static_cast<uint16_t>(stream.bytes_written));
+    if (not ret)
     {
-        bool ret = network.write(_deviceTable[devid], (const void *)&stream, static_cast<uint16_t>(stream.bytes_written));
-        if (ret)
-        {
-            break;
-        }
         LOG_WARNING(QString("Error writing"));
-        ++attempts;
     }
 
     return true;
