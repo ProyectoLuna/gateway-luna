@@ -32,7 +32,7 @@ public:
 
 public slots:
     bool onRxMessage(RemoteDevMessage* rawMessage);
-    bool onTxMessage(QSharedPointer<message::Message<RepeatedSensorCommand>> message);
+    bool onTxMessage(QSharedPointer<message::Message<RepeatedDevData>> message);
     bool start();
     void stop();
 

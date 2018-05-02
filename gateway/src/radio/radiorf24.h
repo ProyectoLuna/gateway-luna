@@ -28,7 +28,7 @@ public slots:
     bool start() override;
     void stop() override;
     void quit() override;
-    bool send(QSharedPointer<message::Message<RepeatedSensorCommand>> message) override;
+    bool send(QSharedPointer<message::Message<RepeatedDevData>> message) override;
 
 private:
     bool _gameover;

@@ -60,20 +60,22 @@ int main(int argc, char *argv[])
 //        message.header.unique_id.radio_id = RadioId_RID_NRF24;
 //        message.header.unique_id.id32 = 13;
 //
-//        RepeatedSensorData repeatedData;
+//        RepeatedDevData repeatedData;
 //
-//        SensorData sensorData[4];
-//        int numData = 4;
-//        for (int i = 0; i < numData; ++i)
-//        {
-//            sensorData[i].unit = SensorUnits_SU_MAH;
-//            sensorData[i].value = i;
-//        }
+//        RemoteDevData devData[4];
+//        int numData = 2;
 //
-//        repeatedData.data = sensorData;
+//        devData[0].sensor_data.unit = SensorUnits_SU_MAH;
+//        devData[0].sensor_data.value = 133;
+//        devData[0].has_sensor_data = true;
+//        devData[1].sensor_command.command = SensorCommandType_SCT_TOGGLE;
+//        devData[1].sensor_command.data = 0;
+//        devData[1].has_sensor_command = true;
+//
+//        repeatedData.data = devData;
 //        repeatedData.num = numData;
 //
-//        message.data.funcs.encode = &encode_repeated_sensordata;
+//        message.data.funcs.encode = &encode_repeated_devdata;
 //        message.data.arg = &repeatedData;
 //
 //        status = pb_encode(&stream, RemoteDevMessage_fields, &message);
@@ -93,12 +95,13 @@ int main(int argc, char *argv[])
 //        /* Create a stream that reads from the buffer. */
 //        pb_istream_t stream = pb_istream_from_buffer(buffer, message_length);
 //
-//        RepeatedSensorData repeatedData;
+//        RepeatedDevData repeatedData;
 //        repeatedData.num = 0;
-//        SensorData sensorData[8];
-//        repeatedData.data = sensorData;
 //
-//        message.data.funcs.decode = &decode_sensordata;
+//        RemoteDevData devData[8];
+//        repeatedData.data = devData;
+//
+//        message.data.funcs.decode = &decode_devdata;
 //        message.data.arg = &repeatedData;
 //
 //        status = pb_decode(&stream, RemoteDevMessage_fields, &message);
@@ -114,14 +117,13 @@ int main(int argc, char *argv[])
 //                 .arg(message.header.transaction_id)
 //                 .arg(repeatedData.num)
 //                 );
-//
-//        for (int i = 0; i < repeatedData.num; ++i)
-//        {
-//            LOG_INFO(QString("Unit: %1, value: %2")
-//                     .arg(repeatedData.data[i].unit)
-//                     .arg(repeatedData.data[i].value)
-//                     );
-//        }
+//        LOG_INFO(QString("hasdata: %1, hascmd: %2").arg(devData[0].has_sensor_data).arg(devData[0].has_sensor_command));
+//        LOG_INFO(QString("data unit: %1, data value: %2, cmd: %3, cmddata: %4")
+//                 .arg(devData[0].sensor_data.unit)
+//                 .arg(devData[0].sensor_data.value)
+//                 .arg(devData[1].sensor_command.command)
+//                 .arg(devData[1].sensor_command.data)
+//                 );
 //
 //    }
 //    return 0;

@@ -10,7 +10,7 @@
 static QHash<SensorUnits, QString> sensorUnitsTranslator =
 {
     {SensorUnits::SensorUnits_SU_UNKNOWN, "Unknow"},
-    {SensorUnits::SensorUnits_SU_MAH, "mAh"},
+    {SensorUnits::SensorUnits_SU_MA, "mAh"},
     {SensorUnits::SensorUnits_SU_CELSIUS_DEGREE, "ºC"},
     {SensorUnits::SensorUnits_SU_FAHRENHEIT_DEGREE, "ºF"},
     {SensorUnits::SensorUnits_SU_KELVIN_DEGREE, "K"},
@@ -40,7 +40,7 @@ public:
     bool sendCommand(const device::Device &device, SensorCommandType commandId);
 
 signals:
-    void sendMessage(QSharedPointer<message::Message<RepeatedSensorCommand>> message);
+    void sendMessage(QSharedPointer<message::Message<RepeatedDevData>> message);
 };
 
 template<class T>
@@ -52,7 +52,7 @@ QSharedPointer<Message<T>> MessageManager::generateMessage(const device::Device 
 }
 
 template<>
-QSharedPointer<Message<RepeatedSensorCommand>> MessageManager::generateMessage(const device::Device &device, SensorCommandType commandId);
+QSharedPointer<Message<RepeatedDevData>> MessageManager::generateMessage(const device::Device &device, SensorCommandType commandId);
 
 }
 }

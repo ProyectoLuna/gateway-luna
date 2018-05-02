@@ -42,7 +42,7 @@ void RadioBase::quit()
     emit finished();
 }
 
-bool RadioBase::send(QSharedPointer<message::Message<RepeatedSensorCommand>> message)
+bool RadioBase::send(QSharedPointer<message::Message<RepeatedDevData> > message)
 {
     Q_UNUSED(message);
     LOG_INFO("Generic send");

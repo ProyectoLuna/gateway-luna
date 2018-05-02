@@ -35,8 +35,8 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MAKE_PROGRAM "/usr/bin/make")
 
-set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -mfloat-abi=hard")
-set(CMAKE_C_FLAGS  "${CMAKE_CXX_FLAGS} -mfloat-abi=hard")
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -mfloat-abi=hard -g")
+set(CMAKE_C_FLAGS  "${CMAKE_CXX_FLAGS} -mfloat-abi=hard -g")
 
 set(LUNA_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src")
 

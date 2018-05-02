@@ -12,7 +12,7 @@ MessageManager::MessageManager(QObject *parent) : common::ServiceBase (parent)
 
 bool MessageManager::sendCommand(const device::Device &device, SensorCommandType commandId)
 {
-    auto commandMsgPtr = generateMessage<RepeatedSensorCommand>(device, commandId);
+    auto commandMsgPtr = generateMessage<RepeatedDevData>(device, commandId);
 
     if (not commandMsgPtr)
     {
@@ -25,12 +25,12 @@ bool MessageManager::sendCommand(const device::Device &device, SensorCommandType
 }
 
 template<>
-QSharedPointer<Message<RepeatedSensorCommand>> MessageManager::generateMessage(const device::Device &device, SensorCommandType commandId)
+QSharedPointer<Message<RepeatedDevData>> MessageManager::generateMessage(const device::Device &device, SensorCommandType commandId)
 {
-    if (commandId < 0 || commandId > SensorCommandType_SCT_TOTAL_NUMBER)
+    if (commandId < 0 || commandId > _SensorCommandType_MAX)
     {
         LOG_WARNING(QString("%1 Command not found").arg(commandId));
-        return QSharedPointer<Message<RepeatedSensorCommand>>();
+        return QSharedPointer<Message<RepeatedDevData>>();
     }
 
     RemoteDevMessage *nanopbMessage = new RemoteDevMessage;
@@ -40,16 +40,18 @@ QSharedPointer<Message<RepeatedSensorCommand>> MessageManager::generateMessage(c
     nanopbMessage->header.unique_id.radio_id = device.getRadioId();
     nanopbMessage->header.unique_id.id32 = device.getId();
 
-    RepeatedSensorCommand *repeatedCommand = new RepeatedSensorCommand;
-    SensorCommand *command = new SensorCommand;
+    RepeatedDevData *repeatedData = new RepeatedDevData;
+    RemoteDevData *devData = new RemoteDevData;
 
-    command->command = commandId;
+    devData->sensor_command.command = commandId;
+    devData->sensor_command.data = 0;
+    devData->has_sensor_command = true;
 
-    repeatedCommand->data = command;
-    repeatedCommand->num = 1;
+    repeatedData->data = devData;
+    repeatedData->num = 1;
 
-    nanopbMessage->data.funcs.encode = &encode_repeated_sensorcommand;
-    nanopbMessage->data.arg = repeatedCommand;
+    nanopbMessage->data.funcs.encode = &encode_repeated_devdata;
+    nanopbMessage->data.arg = repeatedData;
 
-    return QSharedPointer<Message<RepeatedSensorCommand>>(new Message<RepeatedSensorCommand>(nanopbMessage));
+    return QSharedPointer<Message<RepeatedDevData>>(new Message<RepeatedDevData>(nanopbMessage));
 }

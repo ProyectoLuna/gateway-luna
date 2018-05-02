@@ -11,7 +11,7 @@ Device::Device(QObject *parent) : QObject(parent)
 
 }
 
-Device::Device(QSharedPointer<message::Message<RepeatedSensorData>> message, QObject *parent) : QObject(parent)
+Device::Device(QSharedPointer<message::Message<RepeatedDevData>> message, QObject *parent) : QObject(parent)
 {
     update(message);
 }
@@ -29,23 +29,27 @@ bool Device::execCommand(SensorCommandType commandId)
     return true;
 }
 
-bool Device::update(QSharedPointer<message::Message<RepeatedSensorData>> message)
+bool Device::update(QSharedPointer<message::Message<RepeatedDevData>> message)
 {
     RemoteDevMessage *nanopb = message->getProto();
-    RepeatedSensorData *sensorData = static_cast<RepeatedSensorData*>(nanopb->data.arg);
+    RepeatedDevData *devData = static_cast<RepeatedDevData*>(nanopb->data.arg);
 
     _radioId = nanopb->header.unique_id.radio_id;
     _id = nanopb->header.unique_id.id32;
 
-    for (int i = 0; i < sensorData->num; ++i)
+    for (int i = 0; i < devData->num; ++i)
     {
-        _sensorData[sensorData->data[i].unit] = sensorData->data[i].value;
+        if (not devData->data[i].has_sensor_data)
+        {
+            continue;
+        }
+        _sensorData[devData->data[i].sensor_data.unit] = devData->data[i].sensor_data.value;
     }
 
     return true;
 }
 
-quint64 Device::getDeviceIdFromMessage(QSharedPointer<message::Message<RepeatedSensorData>> message)
+quint64 Device::getDeviceIdFromMessage(QSharedPointer<message::Message<RepeatedDevData> > message)
 {
     RemoteDevMessage *nanopb = message->getProto();
 

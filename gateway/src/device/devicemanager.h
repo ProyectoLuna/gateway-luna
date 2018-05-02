@@ -28,7 +28,7 @@ class DeviceManager : public common::ServiceBase
 
 public:
     DeviceManager(QObject *parent = nullptr);
-    bool updateDevice(QSharedPointer<message::Message<RepeatedSensorData>> message);
+    bool updateDevice(QSharedPointer<message::Message<RepeatedDevData>> message);
     bool existsDevice(quint64 deviceId);
     void setMessageMng(const QSharedPointer<message::MessageManager> messageMng);
     QList<QSharedPointer<Device>> getDevices();

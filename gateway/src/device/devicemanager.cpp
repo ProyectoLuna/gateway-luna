@@ -19,7 +19,7 @@ DeviceManager::DeviceManager(QObject *parent) : common::ServiceBase(parent), _mu
     _name = "DeviceManager";
 }
 
-bool DeviceManager::updateDevice(QSharedPointer<message::Message<RepeatedSensorData>> message)
+bool DeviceManager::updateDevice(QSharedPointer<message::Message<RepeatedDevData>> message)
 {
     quint64 id64 = Device::getDeviceIdFromMessage(message);
 

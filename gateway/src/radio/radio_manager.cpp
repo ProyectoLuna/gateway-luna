@@ -101,8 +101,8 @@ void RadioManager::setDeviceManager(QSharedPointer<device::DeviceManager> device
 
 bool RadioManager::onRxMessage(RemoteDevMessage *rawMessage)
 {
-    QSharedPointer<message::Message<RepeatedSensorData>> message =
-            QSharedPointer<message::Message<RepeatedSensorData>>(new message::Message<RepeatedSensorData>(rawMessage));
+    QSharedPointer<message::Message<RepeatedDevData>> message =
+            QSharedPointer<message::Message<RepeatedDevData>>(new message::Message<RepeatedDevData>(rawMessage));
 
     //LOG_DEBUG(QString("ID: %1, radioID: %2, transaction: %3")
     //          .arg(rawMessage->header.unique_id.id32)
@@ -114,7 +114,7 @@ bool RadioManager::onRxMessage(RemoteDevMessage *rawMessage)
     return true;
 }
 
-bool RadioManager::onTxMessage(QSharedPointer<message::Message<RepeatedSensorCommand>> message)
+bool RadioManager::onTxMessage(QSharedPointer<message::Message<RepeatedDevData>> message)
 {
     RemoteDevMessage *nanopb = message->getProto();
     RadioId radioId = nanopb->header.unique_id.radio_id;

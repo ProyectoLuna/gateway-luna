@@ -25,11 +25,11 @@ class Device : public QObject
 
 public:
     Device(QObject *parent = nullptr);
-    Device(QSharedPointer<message::Message<RepeatedSensorData>> message, QObject *parent = nullptr);
+    Device(QSharedPointer<message::Message<RepeatedDevData>> message, QObject *parent = nullptr);
     bool execCommand(SensorCommandType commandId);
-    bool update(QSharedPointer<message::Message<RepeatedSensorData>> message);
+    bool update(QSharedPointer<message::Message<RepeatedDevData>> message);
 
-    quint64 static getDeviceIdFromMessage(QSharedPointer<message::Message<RepeatedSensorData>> message);
+    quint64 static getDeviceIdFromMessage(QSharedPointer<message::Message<RepeatedDevData>> message);
 
     void setMessageMng(const QSharedPointer<message::MessageManager> messageMng);
     RadioId getRadioId() const;

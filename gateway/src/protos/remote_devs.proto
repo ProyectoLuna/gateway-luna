@@ -1,25 +1,35 @@
 syntax = "proto2";
 
+enum MicrocontrollerType {
+    MC_UNKNOWN = 0;
+    MC_ATMEGA328P = 1;
+}
+
+enum DeviceType {
+    DT_UNKNOWN = 0;
+    DT_RELAY = 1;
+    DT_AC_SENSOR = 2;
+}
+
 enum RadioId {
     RID_UNKNOWN = 0;
     RID_NRF24 = 1;
+    RID_WIFI = 2;
 }
 
 enum SensorUnits {
     SU_UNKNOWN = 0;
-    SU_MAH = 1;
+    SU_MA = 1;
     SU_CELSIUS_DEGREE = 2;
     SU_FAHRENHEIT_DEGREE = 3;
     SU_KELVIN_DEGREE = 4;
     SU_BOOL = 5;
     SU_RELAYSTATUS = 6;
-    SU_TOTAL_NUMBER = 7; // ALWAYS LAST
 }
 
 enum SensorCommandType {
     SCT_UNKNOWN = 0;
     SCT_TOGGLE = 1;
-    SCT_TOTAL_NUMBER = 2; // ALWAYS LAST
 }
 
 message RemoteDevUniqueId {
@@ -39,12 +49,12 @@ message SensorData {
 
 message SensorCommand {
     required SensorCommandType command = 1;
-    optional uint32 data = 2;
+    required int32 data = 2;
 }
 
 message RemoteDevData {
-    repeated SensorData sendor_data = 1;
-    repeated SensorCommand sensor_command = 2;
+    optional SensorData sensor_data = 1;
+    optional SensorCommand sensor_command = 2;
 }
 
 message RemoteDevMessage {

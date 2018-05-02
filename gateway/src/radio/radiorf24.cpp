@@ -58,8 +58,7 @@ bool RadioRF24::start()
 
             uint8_t buffer[256];
             size_t message_length;
-            bool status;
-            //uint32_t dat = 0;
+
             switch (header.type)
             {
             // Display the incoming millis() values from the sensor nodes
@@ -72,15 +71,24 @@ bool RadioRF24::start()
                 // Create a stream that reads from the buffer
                 pb_istream_t stream = pb_istream_from_buffer(buffer, message_length);
 
-                RepeatedSensorData *repeatedData = new RepeatedSensorData;
+                RepeatedDevData *repeatedData = new RepeatedDevData;
                 repeatedData->num = 0;
-                SensorData *sensorData = new SensorData[8]; // TODO parameterize, allowed max sensor data
-                repeatedData->data = sensorData;
+                RemoteDevData *devData = new RemoteDevData[8]; // TODO parameterize, allowed max sensor data
+                repeatedData->data = devData;
 
-                message->data.funcs.decode = &decode_sensordata;
+                message->data.funcs.decode = &decode_devdata;
                 message->data.arg = repeatedData;
 
-                status = pb_decode(&stream, RemoteDevMessage_fields, message);
+                bool status = pb_decode(&stream, RemoteDevMessage_fields, message);
+
+                LOG_DEBUG(QString("node: %3").arg(QString::number(header.from_node, 8)));
+
+                //header_tonode.to_node = header.from_node;
+                //bool ret = network.write(header_tonode, (const void *)msg, (unsigned short int)strlen(msg));
+                //if (not ret)
+                //{
+                //    LOG_WARNING(QString("Error writing"));
+                //}
 
                 if (!status)
                 {
@@ -88,42 +96,8 @@ bool RadioRF24::start()
                     break;
                 }
 
-                //LOG_DEBUG(QString("ID: %1, radioID: %2, transaction: %3")
-                //         .arg(message->header.unique_id.id32)
-                //         .arg(message->header.unique_id.radio_id)
-                //         .arg(message->header.transaction_id)
-                //         );
-
-                //for (int i = 0; i < repeatedData->num; ++i)
-                //{
-                //    LOG_DEBUG(QString("Unit: %1, value: %2")
-                //             .arg(repeatedData->data[i].unit)
-                //             .arg(repeatedData->data[i].value)
-                //             );
-                //}
-
-                // Print the data contained in the message.
-                LOG_DEBUG(QString("node: %3").arg(QString::number(header.from_node, 8)));
-
                 header_tonode.to_node = header.from_node;
                 _deviceTable[message->header.unique_id.id32] = header_tonode;
-
-                //int attempts = 0;
-                //while (attempts < 3)
-                //{
-                //    bool ret = network.write(header_tonode, (const void *)msg, (unsigned short int)strlen(msg));
-                //    if (ret)
-                //    {
-                //        break;
-                //    }
-                //    LOG_WARNING(QString("Error writing"));
-                //    ++attempts;
-                //}
-
-                //network.read(header, &dat, sizeof(dat));
-                //LOG_INFO(QString("Rcv %1 from %2").arg(dat).arg(QString::number(header.from_node, 8)));
-                //header_tonode.to_node = header.from_node;
-                //network.write(header_tonode, (const void *)msg, (unsigned short int)strlen(msg));
 
                 emit rxMessage(message);
 
@@ -154,7 +128,7 @@ void RadioRF24::quit()
     emit finished();
 }
 
-bool RadioRF24::send(QSharedPointer<message::Message<RepeatedSensorCommand>> message)
+bool RadioRF24::send(QSharedPointer<message::Message<RepeatedDevData>> message)
 {
     RemoteDevMessage *nanopb = message->getProto();
     quint32 devid = nanopb->header.unique_id.id32;
@@ -176,7 +150,8 @@ bool RadioRF24::send(QSharedPointer<message::Message<RepeatedSensorCommand>> mes
         return false;
     }
 
-    bool ret = network.write(_deviceTable[devid], (const void *)&stream, static_cast<uint16_t>(stream.bytes_written));
+    LOG_DEBUG(QString("sending %1 bytes").arg(stream.bytes_written));
+    bool ret = network.write(_deviceTable[devid], (const void *)&buffer, static_cast<uint16_t>(stream.bytes_written));
     if (not ret)
     {
         LOG_WARNING(QString("Error writing"));

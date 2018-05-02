@@ -34,7 +34,7 @@ public slots:
     virtual bool start();
     virtual void stop();
     virtual void quit();
-    virtual bool send(QSharedPointer<message::Message<RepeatedSensorCommand>> message);
+    virtual bool send(QSharedPointer<message::Message<RepeatedDevData>> message);
 };
 
 }
