@@ -17,16 +17,14 @@ static bool decode_devdata(pb_istream_t *stream, const pb_field_t *field, void *
 {
     RepeatedDevData *repeatedData = *((RepeatedDevData**)arg);
 
-    RemoteDevData devData = RemoteDevData_init_zero;
-
     // We could read block-by-block to avoid the large buffer...
     if (stream->bytes_left > sizeof(RemoteDevData) - 1)
         return false;
 
-    if (not pb_decode(stream, RemoteDevData_fields, &devData))
+    if (not pb_decode(stream, RemoteDevData_fields, &repeatedData->data[repeatedData->num]))
         return false;
 
-    repeatedData->data[repeatedData->num++] = devData;
+    repeatedData->num++;
 
     return true;
 }
